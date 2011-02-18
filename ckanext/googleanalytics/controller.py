@@ -20,7 +20,7 @@ class GAController(BaseController):
     def __str__(self):
         # XXX hack to provide consistent cache key; what's the
         # canonical way of doing caching like this in CKAN right now?
-        return "analyticscontrollerx"
+        return "analyticscontroller"
 
     def get_top_packages(self):
         packages_data = self._get_ga_data()

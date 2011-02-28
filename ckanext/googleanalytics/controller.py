@@ -20,7 +20,7 @@ class GAController(BaseController):
     def __str__(self):
         # XXX hack to provide consistent cache key; what's the
         # canonical way of doing caching like this in CKAN right now?
-        return "analyticscontroller2"
+        return "analyticscontroller"
 
     def get_top_packages(self):
         packages_data = self._get_ga_data()
@@ -66,7 +66,7 @@ class GAController(BaseController):
         query = client.DataFeedQuery({'ids': '%s' % table_id,
                                       'start-date': from_date,
                                       'end-date': to_date,
-                                      'dimensions': 'ga:source,ga:medium,ga:pagePath',
+                                      'dimensions': 'ga:pagePath',
                                       'metrics': 'ga:visits,ga:visitors,ga:newVisits',
                                       'sort': '-ga:newVisits',
                                       'filters': 'ga:pagePath=~^%s' % PACKAGE_URL,

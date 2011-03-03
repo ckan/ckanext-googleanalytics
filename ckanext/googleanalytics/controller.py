@@ -6,6 +6,7 @@ from ckan.lib.base import *
 from ckan.authz import Authorizer
 from gdata.analytics import client
 from ckan import model
+from ckan.model.authoz import PSEUDO_USER__VISITOR
 from ckanext.googleanalytics import GoogleAnalyticsException
 
 PACKAGE_URL = '/package/'  # XXX get from routes...
@@ -26,7 +27,7 @@ class GAController(BaseController):
         packages_data = self._get_ga_data()
         items = []
         authorizer = Authorizer()
-        q = authorizer.authorized_query(None, model.Package)
+        q = authorizer.authorized_query(PSEUDO_USER__VISITOR, model.Package)
         for package, visits in packages_data[:10]:
             url_frag = package[len(PACKAGE_URL):]
             if "/" in url_frag:

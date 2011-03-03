@@ -6,7 +6,7 @@ from ckan.lib.base import *
 from ckan.authz import Authorizer
 from gdata.analytics import client
 from ckan import model
-from ckan.model.authoz import PSEUDO_USER__VISITOR
+from ckan.model.authz import PSEUDO_USER__VISITOR
 from ckanext.googleanalytics import GoogleAnalyticsException
 
 PACKAGE_URL = '/package/'  # XXX get from routes...

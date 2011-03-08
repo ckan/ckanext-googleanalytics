@@ -1,4 +1,6 @@
 import logging
+import urllib
+
 log = logging.getLogger(__name__)
 import os
 from genshi.filters import Transformer
@@ -38,6 +40,17 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         ga_id = self.config['googleanalytics.id']
         code = HTML(gacode % ga_id)
         stream = stream | Transformer('head').append(code)
+
+        # add download tracking link
+        def js_attr(name, event):
+            attrs = event[1][1]
+            link = '/downloads/%s' % urllib.quote(attrs.get('href'))
+            js = "javascript: _gaq.push(['_trackPageview', '%s']);" % link
+            return js
+        stream = stream | Transformer(
+            '//div[@id="package"]//td/a')\
+            .attr('onclick', js_attr)
+
         return stream
 
     def after_map(self, map):

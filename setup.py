@@ -26,6 +26,6 @@ setup(
 	"""
         [ckan.plugins]
 	# Add plugins here, eg
-	googleanalytics=ckanext.googleanalytics:GoogleAnalyticsPlugin
+	googleanalytics=ckanext.googleanalytics.plugin:GoogleAnalyticsPlugin
 	""",
 )

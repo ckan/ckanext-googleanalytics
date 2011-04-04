@@ -1,15 +1,19 @@
 import logging
 import urllib
-
-log = logging.getLogger(__name__)
 import os
 from genshi.filters import Transformer
 from genshi import HTML
+from genshi.core import START, TEXT
+from genshi.filters.transform import INSIDE
+from pylons import config
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IGenshiStreamFilter, IConfigurable, IRoutes
 from ckan.plugins import IConfigurer
-from ckan import model
 from gasnippet import gacode
+from commands import DEFAULT_RESOURCE_URL_TAG
+import dbutil
+
+log = logging.getLogger('ckanext.googleanalytics')
 
 
 class GoogleAnalyticsException(Exception):
@@ -34,16 +38,36 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         ga_id = self.config['googleanalytics.id']
         code = HTML(gacode % ga_id)
         stream = stream | Transformer('head').append(code)
+        resource_url = config.get('googleanalytics.resource_prefix',
+                                  DEFAULT_RESOURCE_URL_TAG)
 
         # add download tracking link
         def js_attr(name, event):
             attrs = event[1][1]
-            link = '/downloads/%s' % urllib.quote(attrs.get('href'))
+            link = '%s%s' % (resource_url,
+                             urllib.quote(attrs.get('href')))
             js = "javascript: _gaq.push(['_trackPageview', '%s']);" % link
             return js
+
+        # add some stats
+        def download_adder(stream):
+            download_html = ' <span="downloads-count">(%s downloads)</span>'
+            count = None
+            for mark, (kind, data, pos) in stream:
+                if mark and kind == START:
+                    href = data[1].get('href')
+                    count = dbutil.get_resource_visits_for_url(href)
+                if count and kind == TEXT and mark == INSIDE:
+                    yield mark, (kind,
+                                 data + download_html % count,
+                                 pos)
+                else:
+                    yield mark, (kind, data, pos)
+
+        # perform the stream transform
         stream = stream | Transformer(
             '//div[@id="package"]//td/a')\
-            .attr('onclick', js_attr)
+            .apply(download_adder).attr('onclick', js_attr)
 
         return stream
 

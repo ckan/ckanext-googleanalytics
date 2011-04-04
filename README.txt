@@ -25,12 +25,27 @@ Installation
       # the following *must* match profile name in GA dashboard
       googleanalytics.profile_name = mydomain.com/  
             
+3. Wait a day or so for some stats to be recorded in Google
 
-3. Look at some stats within CKAN
+4. Import Google stats by running the following command from 
+   ``src/ckanext-googleanalytics``::
+
+	paster loadanalytics --config=../ckan/development.ini
+
+   (Of course, pointing config at your specific site config)
+
+5. Look at some stats within CKAN
 
   Once your GA account has gathered some data, you can see some basic
   information about the most popular packages at:
   http://localhost:5000/analytics/package/top
+
+  By default the only data that is injected into the public-facing
+  website is on the package page, where number of downloads are
+  displayed next to each resource.
+
+6. Consider putting the import command as a daily cron job, or
+  remember to run it by hand!
 
 TODO
 ====

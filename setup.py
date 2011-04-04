@@ -27,5 +27,8 @@ setup(
         [ckan.plugins]
 	# Add plugins here, eg
 	googleanalytics=ckanext.googleanalytics.plugin:GoogleAnalyticsPlugin
+
+        [paste.paster_command]
+        loadanalytics = ckanext.googleanalytics.commands:LoadAnalytics
 	""",
 )

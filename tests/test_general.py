@@ -51,6 +51,8 @@ class TestLoadCommand:
                               = 'borf'
         config.local_conf['googleanalytics.profile_name'] \
                               = 'borf'
+        config.local_conf['googleanalytics.show_downloads'] \
+                              = 'true'
         cls.config = config.local_conf
         wsgiapp = make_app(config.global_conf, **config.local_conf)
         env = {'HTTP_ACCEPT': ('text/html;q=0.9,text/plain;'

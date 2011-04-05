@@ -1,6 +1,7 @@
 import logging
 import urllib
 import os
+from paste.deploy.converters import asbool
 from genshi.filters import Transformer
 from genshi import HTML
 from genshi.core import START, TEXT, END
@@ -40,6 +41,8 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         stream = stream | Transformer('head').append(code)
         resource_url = config.get('googleanalytics.resource_prefix',
                                   DEFAULT_RESOURCE_URL_TAG)
+        show_downloads = asbool(config.get('googleanalytics.show_downloads',
+                                           False))
 
         # add download tracking link
         def js_attr(name, event):
@@ -69,8 +72,11 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         # perform the stream transform
         stream = stream | Transformer(
             '//div[@id="package"]//td/a')\
-            .apply(download_adder).attr('onclick', js_attr)
-
+            .attr('onclick', js_attr)
+        if show_downloads:
+            stream = stream | Transformer(
+                '//div[@id="package"]//td/a')\
+                .apply(download_adder)
         return stream
 
     def after_map(self, map):

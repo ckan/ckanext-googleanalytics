@@ -21,17 +21,25 @@ Installation
       googleanalytics.id = UA-1010101-1
       googleanalytics.username = googleaccount@gmail.com
       googleanalytics.password = googlepassword
+      googleanalytics.show_downloads = true
       # the following *must* match profile name in GA dashboard
       googleanalytics.profile_name = mydomain.com
 
-That last comment is worth emphasising.  Due to the strange
-relationship between tracking IDs and profiles, you need to get that
-right.  It's the relevant value in the "Name" column for the list of
-"Website Profiles" that you see when you click on an Analytics Account
-link in the Google Analytics homepage.  E.g. you'll need two clicks
-from the analytics home page to see the profile name.  Sometimes your
-profile name might have a trailing slash; you need to include that,
-too, if so.
+  That last comment is worth emphasising.  Due to the strange
+  relationship between tracking IDs and profiles, you need to get that
+  right.  It's the relevant value in the "Name" column for the list of
+  "Website Profiles" that you see when you click on an Analytics Account
+  link in the Google Analytics homepage.  E.g. you'll need two clicks
+  from the analytics home page to see the profile name.  Sometimes your
+  profile name might have a trailing slash; you need to include that, 
+  too, if so.
+
+  Note also that your password will probably be readable by other
+  people; so you may want to set up a new gmail account specifically
+  for accessing your gmail profile.
+
+  If ``show_downloads`` is set, a download count for resources will be
+  displayed on individual package pages.
             
 3. Wait a day or so for some stats to be recorded in Google
 

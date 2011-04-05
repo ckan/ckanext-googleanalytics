@@ -61,7 +61,8 @@ def update_package_visits(package_id, recently, ever):
         WHERE package_id = '%s'""" % package_id).fetchone()
     if count[0]:
         connection.execute(
-            """UPDATE package_stats SET visits = %s
+            """UPDATE package_stats SET visits_recently = %s,
+            visits_ever = %s
             WHERE package_id = '%s'""" % (recently, ever, package_id)
             )
     else:

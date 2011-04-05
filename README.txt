@@ -47,6 +47,15 @@ Installation
 6. Consider putting the import command as a daily cron job, or
   remember to run it by hand!
 
+Testing
+=======
+
+There are some very high-level functional tests that you can run using::
+
+  (pyenv)~/pyenv/src/ckan$ nosetests --ckan ../ckanext-googleanalytics/tests/
+
+(note -- that's run from the CKAN software root, not the extension root)
+
 TODO
 ====
 

@@ -1,6 +1,6 @@
 import logging
 import datetime
-from pylons import config
+from pylons import config as pylonsconfig
 from ckan.lib.cli import CkanCommand
 from gdata.analytics import client
 import ckan.model as model
@@ -21,11 +21,14 @@ class LoadAnalytics(CkanCommand):
     usage = __doc__
     max_args = 0
     min_args = 0
-
+    TEST_HOST = None
+    CONFIG = pylonsconfig
+    
     def command(self):
         self._load_config()
-        self.resource_url_tag = config.get('googleanalytics.resource_prefix',
-                                           DEFAULT_RESOURCE_URL_TAG)
+        self.resource_url_tag = self.CONFIG.get(
+            'googleanalytics.resource_prefix',
+            DEFAULT_RESOURCE_URL_TAG)
         self.setup_ga_connection()
         # funny dance we need to do to make sure we've got a
         # configured session
@@ -67,12 +70,16 @@ class LoadAnalytics(CkanCommand):
 
     def setup_ga_connection(self):
         SOURCE_APP_NAME = "CKAN Google Analytics Plugin"
-        username = config.get('googleanalytics.username')
-        password = config.get('googleanalytics.password')
-        profile_name = config.get('googleanalytics.profile_name')
+        username = self.CONFIG.get('googleanalytics.username')
+        password = self.CONFIG.get('googleanalytics.password')
+        profile_name = self.CONFIG.get('googleanalytics.profile_name')
         if not username or not password or not profile_name:
             raise Exception("No googleanalytics profile info in config")
-        my_client = client.AnalyticsClient(source=SOURCE_APP_NAME)
+        if self.TEST_HOST:
+            my_client = client.AnalyticsClient(source=SOURCE_APP_NAME,
+                                               http_client=self.TEST_HOST)
+        else:
+            my_client = client.AnalyticsClient(source=SOURCE_APP_NAME)
         my_client.ClientLogin(username,
                               password,
                               SOURCE_APP_NAME)
@@ -129,4 +136,3 @@ class LoadAnalytics(CkanCommand):
                                 'ga:uniquePageviews').value or 0
                             packages.setdefault(package, {})[date_name] = count
         return packages
-

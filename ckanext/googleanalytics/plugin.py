@@ -3,8 +3,8 @@ import urllib
 import os
 from genshi.filters import Transformer
 from genshi import HTML
-from genshi.core import START, TEXT
-from genshi.filters.transform import INSIDE
+from genshi.core import START, TEXT, END
+from genshi.filters.transform import INSIDE, EXIT
 from pylons import config
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IGenshiStreamFilter, IConfigurable, IRoutes
@@ -51,18 +51,20 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
 
         # add some stats
         def download_adder(stream):
-            download_html = ' <span="downloads-count">(%s downloads)</span>'
+            download_html = ''' <span class="downloads-count">
+            (%s downloads)</span>'''
             count = None
             for mark, (kind, data, pos) in stream:
                 if mark and kind == START:
                     href = data[1].get('href')
-                    count = dbutil.get_resource_visits_for_url(href)
-                if count and kind == TEXT and mark == INSIDE:
-                    yield mark, (kind,
-                                 data + download_html % count,
-                                 pos)
-                else:
-                    yield mark, (kind, data, pos)
+                    if href:
+                        count = dbutil.get_resource_visits_for_url(href)
+                if count and mark is EXIT:
+                    # emit count
+                    yield INSIDE, (TEXT,
+                                   HTML(download_html % count),
+                                   pos)
+                yield mark, (kind, data, pos)
 
         # perform the stream transform
         stream = stream | Transformer(

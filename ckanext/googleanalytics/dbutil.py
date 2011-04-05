@@ -77,12 +77,29 @@ def get_top_packages(limit=20):
     q = authorizer.authorized_query(PSEUDO_USER__VISITOR,
                                     model.Package)
     connection = model.Session.connection()
-    res = connection.execute("""SELECT package_id, visits_recently
+    res = connection.execute("""SELECT package_id, visits_recently,
+    visits_ever
     FROM package_stats
     ORDER BY visits_recently DESC;""").fetchmany(limit)
-    for package_id, visits in res:
+    for package_id, recent, ever in res:
         item = q.filter("package.id = '%s'" % package_id)
         if not item.count():
             continue
-        items.append((item.first(), visits))
+        items.append((item.first(), recent, ever))
+    return items
+
+
+def get_top_resources(limit=20):
+    items = []
+    connection = model.Session.connection()
+    res = connection.execute("""SELECT resource_id, visits_recently,
+    visits_ever
+    FROM resource_stats
+    ORDER BY visits_recently DESC;""").fetchmany(limit)
+    for resource_id, recent, ever in res:
+        item = model.Session.query(model.Resource)\
+               .filter("resource.id = '%s'" % resource_id)
+        if not item.count():
+            continue
+        items.append((item.first(), recent, ever))
     return items

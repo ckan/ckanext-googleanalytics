@@ -1,10 +1,9 @@
 A CKAN extension for doing things with Google Analytics:
 
-* It sticks tracking code in your templates for you
-* It provides a way for your controllers to access data from GA
+* It puts the relevant tracking code in your templates for you
+  (including tracking code for external resource download links)
 
-The second item is all hard-coded, rough-and-ready, proof-of-concept
-at the moment.
+* 
 
 Installation
 ============
@@ -23,7 +22,16 @@ Installation
       googleanalytics.username = googleaccount@gmail.com
       googleanalytics.password = googlepassword
       # the following *must* match profile name in GA dashboard
-      googleanalytics.profile_name = mydomain.com/  
+      googleanalytics.profile_name = mydomain.com
+
+That last comment is worth emphasising.  Due to the strange
+relationship between tracking IDs and profiles, you need to get that
+right.  It's the relevant value in the "Name" column for the list of
+"Website Profiles" that you see when you click on an Analytics Account
+link in the Google Analytics homepage.  E.g. you'll need two clicks
+from the analytics home page to see the profile name.  Sometimes your
+profile name might have a trailing slash; you need to include that,
+too, if so.
             
 3. Wait a day or so for some stats to be recorded in Google
 
@@ -38,7 +46,7 @@ Installation
 
   Once your GA account has gathered some data, you can see some basic
   information about the most popular packages at:
-  http://localhost:5000/analytics/package/top
+  http://mydomain.com/analytics/package/top
 
   By default the only data that is injected into the public-facing
   website is on the package page, where number of downloads are

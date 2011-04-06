@@ -3,7 +3,9 @@ A CKAN extension for doing things with Google Analytics:
 * It puts the relevant tracking code in your templates for you
   (including tracking code for external resource download links)
 
-* 
+* It provides a page showing top packages and resources
+
+* It inserts download stats onto individual package pages
 
 Installation
 ============
@@ -72,9 +74,14 @@ There are some very high-level functional tests that you can run using::
 
 (note -- that's run from the CKAN software root, not the extension root)
 
-TODO
-====
+Future
+======
 
-* Turn the access-package-data-from-analytics-within-ckan
-functionality into something resembling an API
-* Understand the standard way to do caching in CKAN
+This is a bare-bones, first release of the software.  There are
+several directions it could take in the future.
+
+Because we use Google Analytics for recording statistics, we can hook
+into any of its features.  For example, as a measure of popularity, we
+could record bounce rate, or new visits only; we could also display
+which datasets are popular where, or highlight packages that have been
+linked to from other locations.

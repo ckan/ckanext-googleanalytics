@@ -48,7 +48,7 @@ Installation
    will track users.  You will usually want to leave this as ``auto``;
    if you are tracking users from multiple subdomains, you might want
    to specify something like ``.mydomain.com``.  See `Google's
-   documentation <http://code.google.com/apis/analytics/docs/gaJS/gaJSApiDomainDirectory.html#_gat.GA_Tracker_._setDomainName>` for more info.
+   documentation <http://code.google.com/apis/analytics/docs/gaJS/gaJSApiDomainDirectory.html#_gat.GA_Tracker_._setDomainName>`_ for more info.
 
 3. Wait a day or so for some stats to be recorded in Google
 

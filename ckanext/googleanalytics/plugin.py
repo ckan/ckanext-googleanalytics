@@ -56,7 +56,7 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         # add some stats
         def download_adder(stream):
             download_html = ''' <span class="downloads-count">
-            (%s downloads)</span>'''
+            (downloaded %s times)</span>'''
             count = None
             for mark, (kind, data, pos) in stream:
                 if mark and kind == START:

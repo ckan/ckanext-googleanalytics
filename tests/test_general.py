@@ -90,4 +90,4 @@ class xTestLoadCommand(TestCase):
         response = self.app.get(url_for(controller='package',
                                         action='read',
                                         id='annakarenina'))
-        assert "(4 downloads)" in response.body, response.body
+        assert "(downloaded 4 times)" in response.body, response.body

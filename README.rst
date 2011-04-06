@@ -14,7 +14,7 @@ Installation
 
     ::
 
-    $ pip install -e  hg+https://bitbucket.org/sebbacon/ckanext-googleanalytics#package=/ckanext-googleanalytics
+    $ pip install -e  hg+https://bitbucket.org/okfn/ckanext-googleanalytics#package=/ckanext-googleanalytics
 
 2. Edit your development.ini (or similar) with:
 

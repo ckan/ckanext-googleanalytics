@@ -23,25 +23,25 @@ Installation
       googleanalytics.id = UA-1010101-1
       googleanalytics.username = googleaccount@gmail.com
       googleanalytics.password = googlepassword
+
+   Note that your password will probably be readable by other people;
+   so you may want to set up a new gmail account specifically for
+   accessing your gmail profile.
+
+   There are two optional configuration settings (shown with their
+   default settings)::
+
       googleanalytics.show_downloads = true
-      # the following *must* match profile name in GA dashboard
-      googleanalytics.profile_name = mydomain.com
-
-   That last comment is worth emphasising.  Due to the strange
-   relationship between tracking IDs and profiles, you need to get
-   that right.  It's the relevant value in the "Name" column for the
-   list of "Website Profiles" that you see when you click on an
-   Analytics Account link in the Google Analytics homepage.
-   E.g. you'll need two clicks from the analytics home page to see the
-   profile name.  Sometimes your profile name might have a trailing
-   slash; you need to include that, too, if so.
-
-   Note also that your password will probably be readable by other
-   people; so you may want to set up a new gmail account specifically
-   for accessing your gmail profile.
+      googleanalytics.resource_prefix = /downloads/
 
    If ``show_downloads`` is set, a download count for resources will
    be displayed on individual package pages.
+
+   ``resource_prefix`` is an arbitrary identifier so that we can query
+   for downloads in Google Analytics.  It can theoretically be any
+   string, but should ideally resemble a URL path segment, to make
+   filtering for all resources easier in the Google Analytics web
+   interface.
             
 3. Wait a day or so for some stats to be recorded in Google
 
@@ -66,7 +66,7 @@ Installation
    remember to run it by hand!
 
 Testing
-=======
+======= 
 
 There are some very high-level functional tests that you can run using::
 
@@ -85,3 +85,7 @@ into any of its features.  For example, as a measure of popularity, we
 could record bounce rate, or new visits only; we could also display
 which datasets are popular where, or highlight packages that have been
 linked to from other locations.
+
+We could also embed extra metadata information in tracking links, to
+enable reports on particular types of data (e.g. most popular data
+format by country of origin, or most downloaded resource by license)

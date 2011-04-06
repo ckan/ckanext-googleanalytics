@@ -49,8 +49,8 @@ class TestLoadCommand:
                               = 'borf'
         config.local_conf['googleanalytics.password'] \
                               = 'borf'
-        config.local_conf['googleanalytics.profile_name'] \
-                              = 'borf'
+        config.local_conf['googleanalytics.id'] \
+                              = 'UA-borf-1'
         config.local_conf['googleanalytics.show_downloads'] \
                               = 'true'
         cls.config = config.local_conf

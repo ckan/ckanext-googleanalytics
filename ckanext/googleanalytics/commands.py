@@ -23,7 +23,7 @@ class LoadAnalytics(CkanCommand):
     min_args = 0
     TEST_HOST = None
     CONFIG = pylonsconfig
-    
+
     def command(self):
         self._load_config()
         self.resource_url_tag = self.CONFIG.get(
@@ -37,11 +37,16 @@ class LoadAnalytics(CkanCommand):
         self.parse_and_save()
 
     def parse_and_save(self):
+        """Grab raw data from Google Analytics and save to the
+        database
+        """
         packages_data = self.get_ga_data()
         self.save_ga_data(packages_data)
         log.info("Saved %s records from google" % len(packages_data))
 
     def save_ga_data(self, packages_data):
+        """Save tuples of packages_data to the database
+        """
         dbutil.init_tables()
         for identifier, visits in packages_data.items():
             recently = visits.get('recent', 0)
@@ -69,11 +74,14 @@ class LoadAnalytics(CkanCommand):
         model.Session.commit()
 
     def setup_ga_connection(self):
+        """Log into the Google Data API, and find out the ``table_id``
+        that is associated with the profile, for later querying
+        """
         SOURCE_APP_NAME = "CKAN Google Analytics Plugin"
         username = self.CONFIG.get('googleanalytics.username')
         password = self.CONFIG.get('googleanalytics.password')
-        profile_name = self.CONFIG.get('googleanalytics.profile_name')
-        if not username or not password or not profile_name:
+        ga_id = self.CONFIG.get('googleanalytics.id')
+        if not username or not password or not ga_id:
             raise Exception("No googleanalytics profile info in config")
         if self.TEST_HOST:
             my_client = client.AnalyticsClient(source=SOURCE_APP_NAME,
@@ -87,16 +95,18 @@ class LoadAnalytics(CkanCommand):
         feed = my_client.GetAccountFeed(account_query)
         table_id = None
         for entry in feed.entry:
-            if entry.title.text == profile_name:
+            if entry.get_property("ga:webPropertyId").value == ga_id:
                 table_id = entry.table_id.text
                 break
         if not table_id:
-            msg = "Couldn't find a profile called '%s'" % profile_name
+            msg = "Couldn't find a profile with id '%s'" % ga_id
             raise Exception(msg)
         self.table_id = table_id
         self.client = my_client
 
     def ga_query(self, query_filter=None, from_date=None):
+        """Executie a query against Google Analytics
+        """
         now = datetime.datetime.now()
         to_date = now.strftime("%Y-%m-%d")
         metrics = 'ga:visits,ga:visitors,ga:newVisits,ga:uniquePageviews'
@@ -113,7 +123,11 @@ class LoadAnalytics(CkanCommand):
         return feed
 
     def get_ga_data(self, query_filter=None):
-        """Return a dictionary like
+        """Get raw data from Google Analtyics for packages and
+        resources, and for both the last two weeks and ever.
+
+        Returns a dictionary like::
+
            {'identifier': {'recent':3, 'ever':6}}
         """
         now = datetime.datetime.now()

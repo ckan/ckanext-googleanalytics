@@ -10,7 +10,7 @@ A CKAN extension for doing things with Google Analytics:
 Installation
 ============
 
-1. Install the extension as usual, e.g.
+1. Install the extension as usual, e.g. (from an activated virtualenv):
 
     ::
 

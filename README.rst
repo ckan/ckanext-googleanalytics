@@ -28,8 +28,8 @@ Installation
    so you may want to set up a new gmail account specifically for
    accessing your gmail profile.
 
-   There are two optional configuration settings (shown with their
-   default settings)::
+   There are some optional configuration settings (shown here with
+   their default settings)::
 
       googleanalytics.show_downloads = true
       googleanalytics.resource_prefix = /downloads/

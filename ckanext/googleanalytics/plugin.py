@@ -37,7 +37,8 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
     def filter(self, stream):
         log.info("Inserting GA code into template")
         ga_id = self.config['googleanalytics.id']
-        code = HTML(gacode % ga_id)
+        ga_domain = self.config.get('googleanalytics.domain', 'auto')
+        code = HTML(gacode % (ga_id, ga_domain))
         stream = stream | Transformer('head').append(code)
         resource_url = config.get('googleanalytics.resource_prefix',
                                   DEFAULT_RESOURCE_URL_TAG)

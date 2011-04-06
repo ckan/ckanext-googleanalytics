@@ -1,5 +1,5 @@
 import httplib
-
+from unittest import TestCase
 
 from ckan.config.middleware import make_app
 from paste.deploy import appconfig
@@ -9,6 +9,7 @@ from ckan.tests import conf_dir, url_for, CreateTestData
 from mockgoogleanalytics import runmockserver
 from ckanext.googleanalytics.commands import LoadAnalytics
 from ckanext.googleanalytics import dbutil
+from ckanext.googleanalytics.gasnippet import gacode
 
 
 class MockClient(httplib.HTTPConnection):
@@ -27,20 +28,17 @@ class MockClient(httplib.HTTPConnection):
         return resp
 
 
-class TestConfig:
+class TestConfig(TestCase):
     def test_config(self):
         config = appconfig('config:test.ini', relative_to=conf_dir)
         config.local_conf['ckan.plugins'] = 'googleanalytics'
+        config.local_conf['googleanalytics.id'] = ''
         command = LoadAnalytics("loadanalytics")
         command.CONFIG = config.local_conf
-        command.run([])
-
-    @classmethod
-    def teardown_class(cls):
-        CreateTestData.delete()
+        self.assertRaises(Exception, command.run, [])
 
 
-class TestLoadCommand:
+class xTestLoadCommand(TestCase):
     @classmethod
     def setup_class(cls):
         config = appconfig('config:test.ini', relative_to=conf_dir)
@@ -68,6 +66,12 @@ class TestLoadCommand:
         conn.request("QUIT", "/")
         conn.getresponse()
 
+    def test_analytics_snippet(self):
+        response = self.app.get(url_for(controller='tag'))
+        code = gacode % (self.config['googleanalytics.id'],
+                         'auto')
+        assert code in response.body
+
     def test_top_packages(self):
         command = LoadAnalytics("loadanalytics")
         command.TEST_HOST = MockClient('localhost', 6969)
@@ -75,8 +79,8 @@ class TestLoadCommand:
         command.run([])
         packages = dbutil.get_top_packages()
         resources = dbutil.get_top_resources()
-        assert packages[0][1] == 2
-        assert resources[0][1] == 4
+        self.assertEquals(packages[0][1], 2)
+        self.assertEquals(resources[0][1], 4)
 
     def test_download_count_inserted(self):
         command = LoadAnalytics("loadanalytics")

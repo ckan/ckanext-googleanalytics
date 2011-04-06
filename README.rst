@@ -14,7 +14,7 @@ Installation
 
     ::
 
-    $ pip install -e  hg+https://bitbucket.org/okfn/ckanext-googleanalytics#package=/ckanext-googleanalytics
+    $ pip install -e  hg+https://bitbucket.org/okfn/ckanext-googleanalytics#egg=ckanext-googleanalytics
 
 2. Edit your development.ini (or similar) with:
 
@@ -33,6 +33,7 @@ Installation
 
       googleanalytics.show_downloads = true
       googleanalytics.resource_prefix = /downloads/
+      googleanalytics.domain = auto
 
    If ``show_downloads`` is set, a download count for resources will
    be displayed on individual package pages.
@@ -42,7 +43,13 @@ Installation
    string, but should ideally resemble a URL path segment, to make
    filtering for all resources easier in the Google Analytics web
    interface.
-            
+   
+   ``domain`` allows you to specify a domain against which Analytics
+   will track users.  You will usually want to leave this as ``auto``;
+   if you are tracking users from multiple subdomains, you might want
+   to specify something like ``.mydomain.com``.  See `Google's
+   documentation <http://code.google.com/apis/analytics/docs/gaJS/gaJSApiDomainDirectory.html#_gat.GA_Tracker_._setDomainName>` for more info.
+
 3. Wait a day or so for some stats to be recorded in Google
 
 4. Import Google stats by running the following command from 

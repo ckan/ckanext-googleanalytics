@@ -43,7 +43,7 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         resource_url = config.get('googleanalytics.resource_prefix',
                                   DEFAULT_RESOURCE_URL_TAG)
         show_downloads = asbool(config.get('googleanalytics.show_downloads',
-                                           False))
+                                           True))
 
         # add download tracking link
         def js_attr(name, event):

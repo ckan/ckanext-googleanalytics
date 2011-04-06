@@ -12,13 +12,13 @@ Installation
 
 1. Install the extension as usual, e.g.
 
-  ::
+    ::
 
     $ pip install -e  hg+https://bitbucket.org/sebbacon/ckanext-googleanalytics#package=/ckanext-googleanalytics
 
 2. Edit your development.ini (or similar) with:
 
-  ::
+   ::
 
       googleanalytics.id = UA-1010101-1
       googleanalytics.username = googleaccount@gmail.com
@@ -27,21 +27,21 @@ Installation
       # the following *must* match profile name in GA dashboard
       googleanalytics.profile_name = mydomain.com
 
-  That last comment is worth emphasising.  Due to the strange
-  relationship between tracking IDs and profiles, you need to get that
-  right.  It's the relevant value in the "Name" column for the list of
-  "Website Profiles" that you see when you click on an Analytics Account
-  link in the Google Analytics homepage.  E.g. you'll need two clicks
-  from the analytics home page to see the profile name.  Sometimes your
-  profile name might have a trailing slash; you need to include that, 
-  too, if so.
+   That last comment is worth emphasising.  Due to the strange
+   relationship between tracking IDs and profiles, you need to get
+   that right.  It's the relevant value in the "Name" column for the
+   list of "Website Profiles" that you see when you click on an
+   Analytics Account link in the Google Analytics homepage.
+   E.g. you'll need two clicks from the analytics home page to see the
+   profile name.  Sometimes your profile name might have a trailing
+   slash; you need to include that, too, if so.
 
-  Note also that your password will probably be readable by other
-  people; so you may want to set up a new gmail account specifically
-  for accessing your gmail profile.
+   Note also that your password will probably be readable by other
+   people; so you may want to set up a new gmail account specifically
+   for accessing your gmail profile.
 
-  If ``show_downloads`` is set, a download count for resources will be
-  displayed on individual package pages.
+   If ``show_downloads`` is set, a download count for resources will
+   be displayed on individual package pages.
             
 3. Wait a day or so for some stats to be recorded in Google
 
@@ -54,16 +54,16 @@ Installation
 
 5. Look at some stats within CKAN
 
-  Once your GA account has gathered some data, you can see some basic
-  information about the most popular packages at:
-  http://mydomain.com/analytics/package/top
+   Once your GA account has gathered some data, you can see some basic
+   information about the most popular packages at:
+   http://mydomain.com/analytics/package/top
 
-  By default the only data that is injected into the public-facing
-  website is on the package page, where number of downloads are
-  displayed next to each resource.
+   By default the only data that is injected into the public-facing
+   website is on the package page, where number of downloads are
+   displayed next to each resource.
 
 6. Consider putting the import command as a daily cron job, or
-  remember to run it by hand!
+   remember to run it by hand!
 
 Testing
 =======

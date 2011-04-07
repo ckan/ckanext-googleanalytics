@@ -70,6 +70,13 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
                                    pos)
                 yield mark, (kind, data, pos)
 
+        # and some styling
+        download_style = '''<style type="text/css">
+           span.downloads-count {
+           font-size: 75%;
+           }
+        </style>'''
+
         # perform the stream transform
         stream = stream | Transformer(
             '//div[@id="package"]//td/a')\
@@ -78,6 +85,9 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
             stream = stream | Transformer(
                 '//div[@id="package"]//td/a')\
                 .apply(download_adder)
+            stream = stream | Transformer(
+                '//link[@rel="stylesheet"]')\
+                .append(HTML(download_style))
         return stream
 
     def after_map(self, map):

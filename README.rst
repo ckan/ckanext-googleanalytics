@@ -16,7 +16,17 @@ Installation
 
     $ pip install -e  hg+https://bitbucket.org/okfn/ckanext-googleanalytics#egg=ckanext-googleanalytics
 
-2. Edit your development.ini (or similar) with:
+2. Edit your development.ini (or similar) to activate the extension
+   with:
+
+   ::
+
+      ckan.plugins = googleanalytics
+
+   (If there are other plugins activated, add this to the list.  Each
+   plugin should be separated with a space)
+
+   In the same file, configure the plugin with your analytics details:
 
    ::
 
@@ -28,8 +38,8 @@ Installation
    so you may want to set up a new gmail account specifically for
    accessing your gmail profile.
 
-   There are some optional configuration settings (shown here with
-   their default settings)::
+   Finally, there are some optional configuration settings (shown here
+   with their default settings)::
 
       googleanalytics.show_downloads = true
       googleanalytics.resource_prefix = /downloads/

@@ -47,6 +47,7 @@ def update_resource_visits(resource_id, recently, ever):
 
 def get_resource_visits_for_url(url):
     connection = model.Session.connection()
+    url = url.replace("%", "%%")
     count = connection.execute(
         """SELECT visits_ever FROM resource_stats, resource
         WHERE resource_id = resource.id

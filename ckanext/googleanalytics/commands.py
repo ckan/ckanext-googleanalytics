@@ -4,13 +4,30 @@ from pylons import config as pylonsconfig
 from ckan.lib.cli import CkanCommand
 from gdata.analytics import client
 import ckan.model as model
-from sqlalchemy.orm import sessionmaker
 
 import dbutil
 
 log = logging.getLogger('ckanext.googleanalytics')
 PACKAGE_URL = '/package/'  # XXX get from routes...
 DEFAULT_RESOURCE_URL_TAG = '/downloads/'
+
+
+class InitDB(CkanCommand):
+    """Initialise the local stats database tables
+    """
+    summary = __doc__.split('\n')[0]
+    usage = __doc__
+    max_args = 0
+    min_args = 0
+
+    def command(self):
+        self._load_config()
+        # funny dance we need to do to make sure we've got a
+        # configured session
+        model.Session.remove()
+        model.Session.configure(bind=model.meta.engine)
+        dbutil.init_tables()
+        log.info("Set up statistics tables in main database")
 
 
 class LoadAnalytics(CkanCommand):
@@ -47,7 +64,6 @@ class LoadAnalytics(CkanCommand):
     def save_ga_data(self, packages_data):
         """Save tuples of packages_data to the database
         """
-        dbutil.init_tables()
         for identifier, visits in packages_data.items():
             recently = visits.get('recent', 0)
             ever = visits.get('ever', 0)

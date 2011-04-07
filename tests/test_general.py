@@ -8,6 +8,7 @@ from ckan.tests import conf_dir, url_for, CreateTestData
 
 from mockgoogleanalytics import runmockserver
 from ckanext.googleanalytics.commands import LoadAnalytics
+from ckanext.googleanalytics.commands import InitDB
 from ckanext.googleanalytics import dbutil
 from ckanext.googleanalytics.gasnippet import gacode
 
@@ -73,6 +74,7 @@ class xTestLoadCommand(TestCase):
         assert code in response.body
 
     def test_top_packages(self):
+        InitDB("initdb").run([]) # set up database tables
         command = LoadAnalytics("loadanalytics")
         command.TEST_HOST = MockClient('localhost', 6969)
         command.CONFIG = self.config
@@ -83,6 +85,7 @@ class xTestLoadCommand(TestCase):
         self.assertEquals(resources[0][1], 4)
 
     def test_download_count_inserted(self):
+        InitDB("initdb").run([]) # set up database tables
         command = LoadAnalytics("loadanalytics")
         command.TEST_HOST = MockClient('localhost', 6969)
         command.CONFIG = self.config

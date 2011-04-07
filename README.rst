@@ -50,16 +50,22 @@ Installation
    to specify something like ``.mydomain.com``.  See `Google's
    documentation <http://code.google.com/apis/analytics/docs/gaJS/gaJSApiDomainDirectory.html#_gat.GA_Tracker_._setDomainName>`_ for more info.
 
-3. Wait a day or so for some stats to be recorded in Google
+3. Run the following command from ``src/ckanext-googleanalytics`` to
+   set up the required database tables (of course, altering the
+   ``--config`` option to point to your site config file)::
 
-4. Import Google stats by running the following command from 
+       paster initdb --config=../ckan/development.ini
+
+4. Wait a while for some stats to be recorded in Google
+
+5. Import Google stats by running the following command from 
    ``src/ckanext-googleanalytics``::
 
 	paster loadanalytics --config=../ckan/development.ini
 
    (Of course, pointing config at your specific site config)
 
-5. Look at some stats within CKAN
+6. Look at some stats within CKAN
 
    Once your GA account has gathered some data, you can see some basic
    information about the most popular packages at:
@@ -69,8 +75,8 @@ Installation
    website is on the package page, where number of downloads are
    displayed next to each resource.
 
-6. Consider putting the import command as a daily cron job, or
-   remember to run it by hand!
+7. Consider running the import command reguarly as a cron job, or
+   remember to run it by hand, or your statistics won't get updated.
 
 Testing
 ======= 

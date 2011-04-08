@@ -1,3 +1,7 @@
+from sqlalchemy import Table, Column, Integer, String, MetaData
+from sqlalchemy.sql import select, insert, text
+from sqlalchemy import func
+
 import ckan.model as model
 from ckan.authz import Authorizer
 from ckan.model.authz import PSEUDO_USER__VISITOR
@@ -5,72 +9,68 @@ from ckan.lib.base import *
 
 
 def init_tables():
-    try:
-        connection = model.Session.connection()
-        connection.execute("""CREATE TABLE package_stats (
-        package_id varchar(60) primary key,
-        visits_recently integer,
-        visits_ever integer);""")
-    except Exception, e:
-        if not "already exists" in e.args[0]:
-            raise
-    model.Session.commit()
-    try:
-        connection = model.Session.connection()
-        connection.execute("""CREATE TABLE resource_stats (
-        resource_id varchar(60) primary key,
-        visits_recently integer,
-        visits_ever integer);""")
-    except Exception, e:
-        if not "already exists" in e.args[0]:
-            raise
-    model.Session.commit()
+    metadata = MetaData()
+    package_stats = Table('package_stats', metadata,
+                          Column('package_id', String(60),
+                                 primary_key=True),
+                          Column('visits_recently', Integer),
+                          Column('visits_ever', Integer))
+    resource_stats = Table('resource_stats', metadata,
+                           Column('resource_id', String(60),
+                                  primary_key=True),
+                           Column('visits_recently', Integer),
+                           Column('visits_ever', Integer))
+    metadata.create_all(model.meta.engine)
+
+
+def get_table(name):
+    meta = MetaData()
+    meta.reflect(bind=model.meta.engine)
+    return meta.tables[name]
+
+
+def _update_visits(table_name, item_id, recently, ever):
+    stats = get_table(table_name)
+    id_col_name = "%s_id" % table_name[:-len("_stats")]
+    id_col = getattr(stats.c, id_col_name)
+    s = select([func.count(id_col)],
+               id_col == item_id)
+    connection = model.Session.connection()
+    count = connection.execute(s).fetchone()
+    if count and count[0]:
+        connection.execute(stats.update()\
+            .where(id_col == item_id)\
+            .values(visits_recently=recently,
+                    visits_ever=ever))
+    else:
+        values = {id_col_name: item_id,
+                  'visits_recently': recently,
+                  'visits_ever': ever}
+        connection.execute(stats.insert()\
+                           .values(**values))
 
 
 def update_resource_visits(resource_id, recently, ever):
-    connection = model.Session.connection()
-    count = connection.execute(
-        """SELECT count(resource_id) FROM resource_stats
-        WHERE resource_id = '%s'""" % resource_id).fetchone()
-    if count[0]:
-        connection.execute(
-            """UPDATE resource_stats SET visits_recently = %s,
-            visits_ever = %s
-            WHERE resource_id = '%s'""" % (recently, ever, resource_id)
-            )
-    else:
-        connection.execute(
-            """INSERT INTO resource_stats
-            (resource_id, visits_recently, visits_ever) VALUES
-            ('%s', %s, %s)""" % (resource_id, recently, ever))
+    return _update_visits("resource_stats",
+                          resource_id,
+                          recently,
+                          ever)
+
+
+def update_package_visits(package_id, recently, ever):
+    return _update_visits("package_stats",
+                          package_id,
+                          recently,
+                          ever)
 
 
 def get_resource_visits_for_url(url):
     connection = model.Session.connection()
-    url = url.replace("%", "%%")
     count = connection.execute(
-        """SELECT visits_ever FROM resource_stats, resource
+        text("""SELECT visits_ever FROM resource_stats, resource
         WHERE resource_id = resource.id
-        AND resource.url = '%s'""" % url).fetchone()
+        AND resource.url = :url"""), url=url).fetchone()
     return count and count[0] or ""
-
-
-def update_package_visits(package_id, recently, ever):
-    connection = model.Session.connection()
-    count = connection.execute(
-        """SELECT count(package_id) FROM package_stats
-        WHERE package_id = '%s'""" % package_id).fetchone()
-    if count[0]:
-        connection.execute(
-            """UPDATE package_stats SET visits_recently = %s,
-            visits_ever = %s
-            WHERE package_id = '%s'""" % (recently, ever, package_id)
-            )
-    else:
-        connection.execute(
-            """INSERT INTO package_stats
-            (package_id, visits_recently, visits_ever) VALUES
-            ('%s', %s, %s)""" % (package_id, recently, ever))
 
 
 def get_top_packages(limit=20):
@@ -79,10 +79,12 @@ def get_top_packages(limit=20):
     q = authorizer.authorized_query(PSEUDO_USER__VISITOR,
                                     model.Package)
     connection = model.Session.connection()
-    res = connection.execute("""SELECT package_id, visits_recently,
-    visits_ever
-    FROM package_stats
-    ORDER BY visits_recently DESC;""").fetchmany(limit)
+    package_stats = get_table('package_stats')
+    s = select([package_stats.c.package_id,
+                package_stats.c.visits_recently,
+                package_stats.c.visits_ever])\
+                .order_by(package_stats.c.visits_recently.desc())
+    res = connection.execute(s).fetchmany(limit)
     for package_id, recent, ever in res:
         item = q.filter("package.id = '%s'" % package_id)
         if not item.count():
@@ -94,10 +96,12 @@ def get_top_packages(limit=20):
 def get_top_resources(limit=20):
     items = []
     connection = model.Session.connection()
-    res = connection.execute("""SELECT resource_id, visits_recently,
-    visits_ever
-    FROM resource_stats
-    ORDER BY visits_recently DESC;""").fetchmany(limit)
+    resource_stats = get_table('resource_stats')
+    s = select([resource_stats.c.resource_id,
+                resource_stats.c.visits_recently,
+                resource_stats.c.visits_ever])\
+                .order_by(resource_stats.c.visits_recently.desc())
+    res = connection.execute(s).fetchmany(limit)
     for resource_id, recent, ever in res:
         item = model.Session.query(model.Resource)\
                .filter("resource.id = '%s'" % resource_id)

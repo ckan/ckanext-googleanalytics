@@ -39,7 +39,7 @@ class TestConfig(TestCase):
         self.assertRaises(Exception, command.run, [])
 
 
-class xTestLoadCommand(TestCase):
+class TestLoadCommand(TestCase):
     @classmethod
     def setup_class(cls):
         config = appconfig('config:test.ini', relative_to=conf_dir)

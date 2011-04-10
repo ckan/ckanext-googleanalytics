@@ -7,6 +7,8 @@ from ckan.authz import Authorizer
 from ckan.model.authz import PSEUDO_USER__VISITOR
 from ckan.lib.base import *
 
+cached_tables = {}
+
 
 def init_tables():
     metadata = MetaData()
@@ -24,9 +26,12 @@ def init_tables():
 
 
 def get_table(name):
-    meta = MetaData()
-    meta.reflect(bind=model.meta.engine)
-    return meta.tables[name]
+    if name not in cached_tables:
+        meta = MetaData()
+        meta.reflect(bind=model.meta.engine)
+        table = meta.tables[name]
+        cached_tables[name] = table
+    return cached_tables[name]
 
 
 def _update_visits(table_name, item_id, recently, ever):

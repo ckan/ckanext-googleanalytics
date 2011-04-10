@@ -48,8 +48,9 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         # add download tracking link
         def js_attr(name, event):
             attrs = event[1][1]
+            href = attrs.get('href').encode('utf-8')
             link = '%s%s' % (resource_url,
-                             urllib.quote(attrs.get('href')))
+                             urllib.quote(href))
             js = "javascript: _gaq.push(['_trackPageview', '%s']);" % link
             return js
 

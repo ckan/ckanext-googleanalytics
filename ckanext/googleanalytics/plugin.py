@@ -6,7 +6,7 @@ from genshi.filters import Transformer
 from genshi import HTML
 from genshi.core import START, TEXT, END
 from genshi.filters.transform import INSIDE, EXIT
-from pylons import config
+from pylons import config, request
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IGenshiStreamFilter, IConfigurable, IRoutes
 from ckan.plugins import IConfigurer
@@ -29,7 +29,6 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
 
     def configure(self, config):
         self.config = config
-        log.info("Loading Google Analytics plugin...")
         if (not 'googleanalytics.id' in config):
             msg = "Missing googleanalytics.id in config"
             raise GoogleAnalyticsException(msg)
@@ -45,50 +44,52 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         show_downloads = asbool(config.get('googleanalytics.show_downloads',
                                            True))
 
-        # add download tracking link
-        def js_attr(name, event):
-            attrs = event[1][1]
-            href = attrs.get('href').encode('utf-8')
-            link = '%s%s' % (resource_url,
-                             urllib.quote(href))
-            js = "javascript: _gaq.push(['_trackPageview', '%s']);" % link
-            return js
+        routes = request.environ.get('pylons.routes_dict')
+        if (routes.get('controller') == 'package' and
+            routes.get('action') == 'read'):
 
-        # add some stats
-        def download_adder(stream):
-            download_html = ''' <span class="downloads-count">
-            (downloaded %s times)</span>'''
-            count = None
-            for mark, (kind, data, pos) in stream:
-                if mark and kind == START:
-                    href = data[1].get('href')
-                    if href:
-                        count = dbutil.get_resource_visits_for_url(href)
-                if count and mark is EXIT:
-                    # emit count
-                    yield INSIDE, (TEXT,
-                                   HTML(download_html % count),
-                                   pos)
-                yield mark, (kind, data, pos)
+            # add download tracking link
+            def js_attr(name, event):
+                attrs = event[1][1]
+                href = attrs.get('href').encode('utf-8')
+                link = '%s%s' % (resource_url, urllib.quote(href))
+                js = "javascript: _gaq.push(['_trackPageview', '%s']);" % link
+                return js
 
-        # and some styling
-        download_style = '''<style type="text/css">
-           span.downloads-count {
-           font-size: 75%;
-           }
-        </style>'''
+            # add some stats
+            def download_adder(stream):
+                download_html = ''' <span class="downloads-count">
+                (downloaded %s times)</span>'''
+                count = None
+                for mark, (kind, data, pos) in stream:
+                    if mark and kind == START:
+                        href = data[1].get('href')
+                        if href:
+                            count = dbutil.get_resource_visits_for_url(href)
+                    if count and mark is EXIT:
+                        # emit count
+                        yield INSIDE, (TEXT, HTML(download_html % count), pos)
+                    yield mark, (kind, data, pos)
 
-        # perform the stream transform
-        stream = stream | Transformer(
-            '//div[@id="package"]//td/a')\
-            .attr('onclick', js_attr)
-        if show_downloads:
-            stream = stream | Transformer(
-                '//div[@id="package"]//td/a')\
-                .apply(download_adder)
-            stream = stream | Transformer(
-                '//link[@rel="stylesheet"]')\
-                .append(HTML(download_style))
+            # and some styling
+            download_style = '''
+            <style type="text/css">
+               span.downloads-count {
+               font-size: 0.9em;
+               }
+            </style>
+            '''
+
+            # perform the stream transform
+            stream = stream | Transformer('//div[@class="resource-url"]//a')\
+                .attr('onclick', js_attr)
+
+            if show_downloads:
+                stream = stream | Transformer('//div[@class="resource-url"]//a')\
+                    .apply(download_adder)
+                stream = stream | Transformer('//link[@rel="stylesheet"]')\
+                    .append(HTML(download_style))
+
         return stream
 
     def after_map(self, map):
@@ -101,6 +102,7 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         here = os.path.dirname(__file__)
         rootdir = os.path.dirname(os.path.dirname(here))
         template_dir = os.path.join(rootdir, 'ckanext',
-                                      'googleanalytics', 'templates')
-        config['extra_template_paths'] = ','.join([template_dir,
-                config.get('extra_template_paths', '')])
+                                    'googleanalytics', 'templates')
+        config['extra_template_paths'] = ','.join(
+            [template_dir, config.get('extra_template_paths', '')]
+        )

@@ -1,3 +1,4 @@
+import os
 import httplib
 from unittest import TestCase
 
@@ -18,13 +19,11 @@ class MockClient(httplib.HTTPConnection):
         filters = http_request.uri.query.get('filters')
         path = http_request.uri.path
         if filters:
-            if "package" in filters:
-                path += "/package"
+            if "dataset" in filters:
+                path += "/dataset"
             else:
                 path += "/download"
-        httplib.HTTPConnection.request(self,
-                                       http_request.method,
-                                       path)
+        httplib.HTTPConnection.request(self, http_request.method, path)
         resp = self.getresponse()
         return resp
 
@@ -42,6 +41,8 @@ class TestConfig(TestCase):
 class TestLoadCommand(TestCase):
     @classmethod
     def setup_class(cls):
+        InitDB("initdb").run([]) # set up database tables
+
         config = appconfig('config:test.ini', relative_to=conf_dir)
         config.local_conf['ckan.plugins'] = 'googleanalytics'
         config.local_conf['googleanalytics.username'] = 'borf'
@@ -69,7 +70,6 @@ class TestLoadCommand(TestCase):
         assert code in response.body
 
     def test_top_packages(self):
-        InitDB("initdb").run([]) # set up database tables
         command = LoadAnalytics("loadanalytics")
         command.TEST_HOST = MockClient('localhost', 6969)
         command.CONFIG = self.config
@@ -80,12 +80,16 @@ class TestLoadCommand(TestCase):
         self.assertEquals(resources[0][1], 4)
 
     def test_download_count_inserted(self):
-        InitDB("initdb").run([]) # set up database tables
         command = LoadAnalytics("loadanalytics")
         command.TEST_HOST = MockClient('localhost', 6969)
         command.CONFIG = self.config
         command.run([])
+        # command.run(['--config=%s' % os.path.join(conf_dir, 'test.ini')])
+        # config = appconfig('config:test.ini', relative_to=conf_dir)
+        # for k in config:
+            # print k
         response = self.app.get(url_for(controller='package',
                                         action='read',
                                         id='annakarenina'))
-        assert "(downloaded 4 times)" in response.body, response.body
+        assert "(downloaded 4 times)" in response.body
+

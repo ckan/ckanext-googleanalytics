@@ -8,7 +8,7 @@ import ckan.model as model
 import dbutil
 
 log = logging.getLogger('ckanext.googleanalytics')
-PACKAGE_URL = '/package/'  # XXX get from routes...
+PACKAGE_URL = '/dataset/'  # XXX get from routes...
 DEFAULT_RESOURCE_URL_TAG = '/downloads/'
 
 
@@ -39,10 +39,13 @@ class LoadAnalytics(CkanCommand):
     max_args = 0
     min_args = 0
     TEST_HOST = None
-    CONFIG = pylonsconfig
+    CONFIG = None
 
     def command(self):
-        self._load_config()
+        if not self.CONFIG:
+            self._load_config()
+            self.CONFIG = pylonsconfig
+
         self.resource_url_tag = self.CONFIG.get(
             'googleanalytics.resource_prefix',
             DEFAULT_RESOURCE_URL_TAG)
@@ -54,9 +57,7 @@ class LoadAnalytics(CkanCommand):
         self.parse_and_save()
 
     def parse_and_save(self):
-        """Grab raw data from Google Analytics and save to the
-        database
-        """
+        """Grab raw data from Google Analytics and save to the database"""
         packages_data = self.get_ga_data()
         self.save_ga_data(packages_data)
         log.info("Saved %s records from google" % len(packages_data))
@@ -104,9 +105,7 @@ class LoadAnalytics(CkanCommand):
                                                http_client=self.TEST_HOST)
         else:
             my_client = client.AnalyticsClient(source=SOURCE_APP_NAME)
-        my_client.ClientLogin(username,
-                              password,
-                              SOURCE_APP_NAME)
+        my_client.ClientLogin(username, password, SOURCE_APP_NAME)
         account_query = client.AccountFeedQuery({'max-results': '300'})
         feed = my_client.GetAccountFeed(account_query)
         table_id = None
@@ -166,3 +165,4 @@ class LoadAnalytics(CkanCommand):
                                 'ga:uniquePageviews').value or 0
                             packages.setdefault(package, {})[date_name] = count
         return packages
+

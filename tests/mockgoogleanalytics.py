@@ -1,8 +1,6 @@
 import os
 import BaseHTTPServer
 import threading
-import gdata.data
-import atom.core
 
 here_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,12 +13,10 @@ class MockHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             fixture = os.path.join(here_dir, "accountsfixture.xml")
             content = open(fixture, "r").read()
         elif "analytics/feeds/data" in self.path:
-            if "package" in self.path:
-                fixture = os.path.join(here_dir,
-                                       "packagefixture.xml")
+            if "dataset" in self.path:
+                fixture = os.path.join(here_dir, "packagefixture.xml")
             elif "download" in self.path:
-                fixture = os.path.join(here_dir,
-                                       "downloadfixture.xml")
+                fixture = os.path.join(here_dir, "downloadfixture.xml")
             self.send_response(200)
             self.end_headers()
             content = open(fixture, "r").read()

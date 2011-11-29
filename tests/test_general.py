@@ -44,14 +44,10 @@ class TestLoadCommand(TestCase):
     def setup_class(cls):
         config = appconfig('config:test.ini', relative_to=conf_dir)
         config.local_conf['ckan.plugins'] = 'googleanalytics'
-        config.local_conf['googleanalytics.username'] \
-                              = 'borf'
-        config.local_conf['googleanalytics.password'] \
-                              = 'borf'
-        config.local_conf['googleanalytics.id'] \
-                              = 'UA-borf-1'
-        config.local_conf['googleanalytics.show_downloads'] \
-                              = 'true'
+        config.local_conf['googleanalytics.username'] = 'borf'
+        config.local_conf['googleanalytics.password'] = 'borf'
+        config.local_conf['googleanalytics.id'] = 'UA-borf-1'
+        config.local_conf['googleanalytics.show_downloads'] = 'true'
         cls.config = config.local_conf
         wsgiapp = make_app(config.global_conf, **config.local_conf)
         env = {'HTTP_ACCEPT': ('text/html;q=0.9,text/plain;'
@@ -68,9 +64,8 @@ class TestLoadCommand(TestCase):
         conn.getresponse()
 
     def test_analytics_snippet(self):
-        response = self.app.get(url_for(controller='tag'))
-        code = gacode % (self.config['googleanalytics.id'],
-                         'auto')
+        response = self.app.get(url_for(controller='tag', action='index'))
+        code = gacode % (self.config['googleanalytics.id'], 'auto')
         assert code in response.body
 
     def test_top_packages(self):

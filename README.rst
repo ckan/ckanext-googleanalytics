@@ -14,7 +14,7 @@ Installation
 
     ::
 
-    $ pip install -e  hg+https://bitbucket.org/okfn/ckanext-googleanalytics#egg=ckanext-googleanalytics
+    $ pip install -e  hg+http://github.com/okfn/ckanext-googleanalytics.git#egg=ckanext-googleanalytics
 
 2. Run the following command from ``src/ckanext-googleanalytics`` to
    set up the required database tables (of course, altering the

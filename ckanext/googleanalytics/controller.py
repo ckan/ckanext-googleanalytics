@@ -1,10 +1,8 @@
 import logging
-from ckan.lib.base import *
+from ckan.lib.base import BaseController, c, render
 import dbutil
 
-
 log = logging.getLogger('ckanext.googleanalytics')
-
 
 class GAController(BaseController):
     def view(self):

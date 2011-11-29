@@ -92,7 +92,7 @@ Installation
 
    Once your GA account has gathered some data, you can see some basic
    information about the most popular packages at:
-   http://mydomain.com/analytics/package/top
+   http://mydomain.com/analytics/dataset/top
 
    By default the only data that is injected into the public-facing
    website is on the package page, where number of downloads are

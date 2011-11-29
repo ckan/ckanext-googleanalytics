@@ -93,7 +93,8 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         return stream
 
     def after_map(self, map):
-        map.connect('analytics', '/analytics/package/top',
+        map.redirect("/analytics/package/top", "/analytics/dataset/top")
+        map.connect('analytics', '/analytics/dataset/top',
                     controller='ckanext.googleanalytics.controller:GAController',
                     action='view')
         return map

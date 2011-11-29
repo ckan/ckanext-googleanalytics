@@ -1,3 +1,14 @@
+CKAN Google Analytics Extension
+===============================
+
+**Status:** Production
+
+**CKAN Version:** 1.5.*
+
+
+Overview
+--------
+
 A CKAN extension for doing things with Google Analytics:
 
 * It puts the relevant tracking code in your templates for you
@@ -8,7 +19,7 @@ A CKAN extension for doing things with Google Analytics:
 * It inserts download stats onto individual package pages
 
 Installation
-============
+------------
 
 1. Install the extension as usual, e.g. (from an activated virtualenv):
 
@@ -91,7 +102,7 @@ Installation
    remember to run it by hand, or your statistics won't get updated.
 
 Testing
-======= 
+-------
 
 There are some very high-level functional tests that you can run using::
 
@@ -100,7 +111,7 @@ There are some very high-level functional tests that you can run using::
 (note -- that's run from the CKAN software root, not the extension root)
 
 Future
-======
+------
 
 This is a bare-bones, first release of the software.  There are
 several directions it could take in the future.

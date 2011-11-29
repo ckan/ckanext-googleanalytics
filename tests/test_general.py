@@ -84,10 +84,6 @@ class TestLoadCommand(TestCase):
         command.TEST_HOST = MockClient('localhost', 6969)
         command.CONFIG = self.config
         command.run([])
-        # command.run(['--config=%s' % os.path.join(conf_dir, 'test.ini')])
-        # config = appconfig('config:test.ini', relative_to=conf_dir)
-        # for k in config:
-            # print k
         response = self.app.get(url_for(controller='package',
                                         action='read',
                                         id='annakarenina'))

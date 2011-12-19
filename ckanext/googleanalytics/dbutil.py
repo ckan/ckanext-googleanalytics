@@ -1,5 +1,5 @@
 from sqlalchemy import Table, Column, Integer, String, MetaData
-from sqlalchemy.sql import select, insert, text
+from sqlalchemy.sql import select, text
 from sqlalchemy import func
 
 import ckan.model as model

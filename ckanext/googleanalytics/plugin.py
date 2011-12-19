@@ -4,7 +4,7 @@ import os
 from paste.deploy.converters import asbool
 from genshi.filters import Transformer
 from genshi import HTML
-from genshi.core import START, TEXT, END
+from genshi.core import START, TEXT
 from genshi.filters.transform import INSIDE, EXIT
 from pylons import config, request
 from ckan.plugins import implements, SingletonPlugin
@@ -58,7 +58,7 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
 
             # add some stats
             def download_adder(stream):
-                download_html = ''' <span class="downloads-count">
+                download_html = '''<span class="downloads-count">
                 (downloaded %s times)</span>'''
                 count = None
                 for mark, (kind, data, pos) in stream:
@@ -81,11 +81,11 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
             '''
 
             # perform the stream transform
-            stream = stream | Transformer('//div[@class="resource-url"]//a')\
+            stream = stream | Transformer('//p[@class="resource-url"]//a')\
                 .attr('onclick', js_attr)
 
             if show_downloads:
-                stream = stream | Transformer('//div[@class="resource-url"]//a')\
+                stream = stream | Transformer('//p[@class="resource-url"]//a')\
                     .apply(download_adder)
                 stream = stream | Transformer('//link[@rel="stylesheet"]')\
                     .append(HTML(download_style))

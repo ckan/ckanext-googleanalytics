@@ -91,8 +91,7 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
             if show_downloads:
                 stream = stream | Transformer('//a[contains(@class, "resource-url-analytics")]')\
                     .apply(download_adder)
-                stream = stream | Transformer('//link[@rel="stylesheet"]')\
-                    .append(HTML(download_style))
+                stream = stream | Transformer('//head').append(HTML(download_style))
 
         return stream
 

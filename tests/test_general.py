@@ -84,8 +84,39 @@ class TestLoadCommand(TestCase):
         command.TEST_HOST = MockClient('localhost', 6969)
         command.CONFIG = self.config
         command.run([])
-        response = self.app.get(url_for(controller='package',
-                                        action='read',
-                                        id='annakarenina'))
-        assert "(downloaded 4 times)" in response.body
+        response = self.app.get(url_for(
+            controller='package', action='read', id='annakarenina'
+        ))
+        assert "[downloaded 4 times]" in response.body
+
+    def test_js_inserted_dataset_view(self):
+        command = LoadAnalytics("loadanalytics")
+        command.TEST_HOST = MockClient('localhost', 6969)
+        command.CONFIG = self.config
+        command.run([])
+        response = self.app.get(url_for(
+            controller='package', action='read', id='annakarenina'
+        ))
+        assert 'onclick="javascript: _gaq.push(' in response.body
+
+    def test_js_inserted_resource_view(self):
+        from nose import SkipTest
+        raise SkipTest("Test won't work until CKAN 1.5.2")
+
+        from ckan.logic.action import get
+        from ckan import model
+        context = {'model': model, 'ignore_auth': True}
+        data = {'id': 'annakarenina'}
+        pkg = get.package_show(context, data)
+        resource_id = pkg['resources'][0]['id']
+
+        command = LoadAnalytics("loadanalytics")
+        command.TEST_HOST = MockClient('localhost', 6969)
+        command.CONFIG = self.config
+        command.run([])
+        response = self.app.get(url_for(
+            controller='package', action='resource_read', id='annakarenina',
+            resource_id=resource_id
+        ))
+        assert 'onclick="javascript: _gaq.push(' in response.body
 

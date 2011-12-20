@@ -41,12 +41,16 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
         stream = stream | Transformer('head').append(code)
         resource_url = config.get('googleanalytics.resource_prefix',
                                   DEFAULT_RESOURCE_URL_TAG)
-        show_downloads = asbool(config.get('googleanalytics.show_downloads',
-                                           True))
 
         routes = request.environ.get('pylons.routes_dict')
         if (routes.get('controller') == 'package' and
-            routes.get('action') == 'read'):
+            routes.get('action') in ['read', 'resource_read']):
+
+            log.info("Tracking of resource downloads")
+            show_downloads = (
+                asbool(config.get('googleanalytics.show_downloads', True)) and
+                routes.get('action') == 'read'
+            )
 
             # add download tracking link
             def js_attr(name, event):
@@ -59,7 +63,7 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
             # add some stats
             def download_adder(stream):
                 download_html = '''<span class="downloads-count">
-                (downloaded %s times)</span>'''
+                [downloaded %s times]</span>'''
                 count = None
                 for mark, (kind, data, pos) in stream:
                     if mark and kind == START:
@@ -81,11 +85,11 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
             '''
 
             # perform the stream transform
-            stream = stream | Transformer('//p[@class="resource-url"]//a')\
+            stream = stream | Transformer('//a[contains(@class, "resource-url-analytics")]')\
                 .attr('onclick', js_attr)
 
             if show_downloads:
-                stream = stream | Transformer('//p[@class="resource-url"]//a')\
+                stream = stream | Transformer('//a[contains(@class, "resource-url-analytics")]')\
                     .apply(download_adder)
                 stream = stream | Transformer('//link[@rel="stylesheet"]')\
                     .append(HTML(download_style))

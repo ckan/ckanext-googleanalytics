@@ -1,5 +1,7 @@
 import logging
 import datetime
+import time
+
 from pylons import config as pylonsconfig
 from ckan.lib.cli import CkanCommand
 from gdata.analytics import client
@@ -31,12 +33,17 @@ class InitDB(CkanCommand):
 
 
 class LoadAnalytics(CkanCommand):
-    """Parse data from Google Analytics API and store it in a local
-    database
+    """Parse data from Google Analytics API and store it
+    in a local database
+
+    Options:
+        internal [date] use ckan internal tracking tables
+                        date specifies start date for retrieving
+                        analytics data YYYY-MM-DD format
     """
     summary = __doc__.split('\n')[0]
     usage = __doc__
-    max_args = 0
+    max_args = 2
     min_args = 0
     TEST_HOST = None
     CONFIG = None
@@ -56,11 +63,139 @@ class LoadAnalytics(CkanCommand):
         model.Session.configure(bind=model.meta.engine)
         self.parse_and_save()
 
+    def internal_save(self, packages_data, summary_date):
+        engine = model.meta.engine
+        # clear out existing data before adding new
+        sql = '''DELETE FROM tracking_summary
+                 WHERE date='%s'; ''' % summary_date
+        engine.execute(sql)
+
+        for url, count in packages_data.iteritems():
+            if url.startswith(DEFAULT_RESOURCE_URL_TAG):
+                tracking_type = 'resource'
+                # remove the leading identifier
+                url = url[len(DEFAULT_RESOURCE_URL_TAG):]
+            else:
+                tracking_type = 'page'
+
+            sql = '''INSERT INTO tracking_summary
+                     (url, count, date, tracking_type)
+                     VALUES (%s, %s, %s, %s);'''
+            engine.execute(sql, url, count, summary_date, tracking_type)
+
+        # get ids for dataset urls
+        sql = '''UPDATE tracking_summary t
+                 SET package_id = COALESCE(
+                     (SELECT id FROM package p WHERE t.url =  %s || p.name)
+                     ,'~~not~found~~')
+                 WHERE t.package_id IS NULL AND tracking_type = 'page';'''
+        engine.execute(sql, PACKAGE_URL)
+
+        # update summary totals for resources
+        sql = '''UPDATE tracking_summary t1
+                 SET running_total = (
+                    SELECT sum(count)
+                    FROM tracking_summary t2
+                    WHERE t1.url = t2.url AND t2.date <= t1.date)
+                 WHERE t1.running_total = 0 AND tracking_type = 'resource';'''
+        engine.execute(sql)
+
+        # update summary totals for pages
+        sql = '''UPDATE tracking_summary t1
+                 SET running_total = (
+                    SELECT sum(count)
+                    FROM tracking_summary t2
+                    WHERE t1.package_id = t2.package_id
+                    AND t2.date <= t1.date)
+                 WHERE t1.running_total = 0 AND tracking_type = 'page'
+                 AND t1.package_id IS NOT NULL
+                 AND t1.package_id != '~~not~found~~';'''
+        engine.execute(sql)
+
+    def bulk_import(self):
+        if len(self.args) == 2:
+            # Get summeries from specified date
+            start_date = datetime.datetime.strptime(self.args[1], '%Y-%m-%d')
+        else:
+            # No date given. See when we last have data for and get data
+            # from 2 days before then in case new data is available.
+            # If no date here then use 2010-01-01 as the start date
+            engine = model.meta.engine
+            sql = '''SELECT date from tracking_summary
+                     ORDER BY date DESC LIMIT 1;'''
+            result = engine.execute(sql).fetchall()
+            if result:
+                start_date = result[0]['date']
+                start_date += datetime.timedelta(-2)
+                # convert date to datetime
+                combine = datetime.datetime.combine
+                start_date = combine(start_date, datetime.time(0))
+            else:
+                start_date = datetime.datetime(2011, 1, 1)
+        end_date = datetime.datetime.now()
+        while start_date < end_date:
+            stop_date = start_date + datetime.timedelta(1)
+            packages_data = self.get_ga_data_new(start_date=start_date,
+                                                 end_date=stop_date)
+            self.internal_save(packages_data, start_date)
+            # sleep to rate limit requests
+            time.sleep(0.25)
+            start_date = stop_date
+            log.info('%s recieved %s' % (len(packages_data), start_date))
+            print '%s recieved %s' % (len(packages_data), start_date)
+
+    def get_ga_data_new(self, start_date=None, end_date=None):
+        """Get raw data from Google Analtyics for packages and
+        resources.
+
+        Returns a dictionary like::
+
+           {'identifier': 3}
+        """
+        start_date = start_date.strftime("%Y-%m-%d")
+        end_date = end_date.strftime("%Y-%m-%d")
+
+        packages = {}
+        query = 'ga:pagePath=~^%s,ga:pagePath=~^%s' % \
+                    (PACKAGE_URL, self.resource_url_tag)
+        metrics = 'ga:uniquePageviews'
+        sort = '-ga:uniquePageviews'
+
+        start_index = 1
+        max_results = 10000
+        # data retrival is chunked
+        while True:
+            feed = self.ga_query(query_filter=query,
+                                 from_date=start_date,
+                                 start_index=start_index,
+                                 max_results=max_results,
+                                 metrics=metrics,
+                                 sort=sort,
+                                 to_date=end_date)
+            for entry in feed.entry:
+                for dim in entry.dimension:
+                    if dim.name == "ga:pagePath":
+                        package = dim.value
+                        count = entry.get_metric(
+                            'ga:uniquePageviews').value or 0
+                        packages[package] = int(count)
+            if len(feed.entry) < max_results:
+                break
+            start_index += max_results
+            # rate limiting
+            time.sleep(0.25)
+        return packages
+
     def parse_and_save(self):
         """Grab raw data from Google Analytics and save to the database"""
-        packages_data = self.get_ga_data()
-        self.save_ga_data(packages_data)
-        log.info("Saved %s records from google" % len(packages_data))
+        if len(self.args):
+            if self.args[0].lower() != 'internal':
+                raise Exception('Illegal argument %s' % self.args[0])
+            self.bulk_import()
+        else:
+            packages_data = self.get_ga_data()
+            self.save_ga_data(packages_data)
+            log.info("Saved %s records from google" % len(packages_data))
 
     def save_ga_data(self, packages_data):
         """Save tuples of packages_data to the database
@@ -119,25 +254,31 @@ class LoadAnalytics(CkanCommand):
         self.table_id = table_id
         self.client = my_client
 
-    def ga_query(self, query_filter=None, from_date=None):
-        """Executie a query against Google Analytics
+    def ga_query(self, query_filter=None, from_date=None, to_date=None,
+                 start_index=1, max_results=10000, metrics=None, sort=None):
+        """Execute a query against Google Analytics
         """
-        now = datetime.datetime.now()
-        to_date = now.strftime("%Y-%m-%d")
-        metrics = 'ga:visits,ga:visitors,ga:newVisits,ga:uniquePageviews'
+        if not to_date:
+            now = datetime.datetime.now()
+            to_date = now.strftime("%Y-%m-%d")
+        if not metrics:
+            metrics = 'ga:visits,ga:visitors,ga:newVisits,ga:uniquePageviews'
+        if not sort:
+            sort = '-ga:newVisits'
         query = client.DataFeedQuery({'ids': '%s' % self.table_id,
                                       'start-date': from_date,
                                       'end-date': to_date,
                                       'dimensions': 'ga:pagePath',
                                       'metrics': metrics,
-                                      'sort': '-ga:newVisits',
+                                      'sort': sort,
+                                      'start-index': start_index,
                                       'filters': query_filter,
-                                      'max-results': '10000'
+                                      'max-results': max_results
                                       })
         feed = self.client.GetDataFeed(query)
         return feed
 
-    def get_ga_data(self, query_filter=None):
+    def get_ga_data(self, query_filter=None, start_date=None, end_date=None):
         """Get raw data from Google Analtyics for packages and
         resources, and for both the last two weeks and ever.
 

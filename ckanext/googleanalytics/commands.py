@@ -67,7 +67,7 @@ class LoadAnalytics(CkanCommand):
         engine = model.meta.engine
         # clear out existing data before adding new
         sql = '''DELETE FROM tracking_summary
-                 WHERE date='%s'; ''' % summary_date
+                 WHERE tracking_date='%s'; ''' % summary_date
         engine.execute(sql)
 
         for url, count in packages_data.iteritems():
@@ -79,7 +79,7 @@ class LoadAnalytics(CkanCommand):
                 tracking_type = 'page'
 
             sql = '''INSERT INTO tracking_summary
-                     (url, count, date, tracking_type)
+                     (url, count, tracking_date, tracking_type)
                      VALUES (%s, %s, %s, %s);'''
             engine.execute(sql, url, count, summary_date, tracking_type)
 
@@ -96,7 +96,15 @@ class LoadAnalytics(CkanCommand):
                  SET running_total = (
                     SELECT sum(count)
                     FROM tracking_summary t2
-                    WHERE t1.url = t2.url AND t2.date <= t1.date)
+                    WHERE t1.url = t2.url
+                    AND t2.tracking_date <= t1.tracking_date
+                 ) + t1.count
+                 ,recent_views = (
+                    SELECT sum(count)
+                    FROM tracking_summary t2
+                    WHERE t1.url = t2.url
+                    AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - 14
+                 ) + t1.count
                  WHERE t1.running_total = 0 AND tracking_type = 'resource';'''
         engine.execute(sql)
 
@@ -106,7 +114,14 @@ class LoadAnalytics(CkanCommand):
                     SELECT sum(count)
                     FROM tracking_summary t2
                     WHERE t1.package_id = t2.package_id
-                    AND t2.date <= t1.date)
+                    AND t2.tracking_date <= t1.tracking_date
+                 ) + t1.count
+                 ,recent_views = (
+                    SELECT sum(count)
+                    FROM tracking_summary t2
+                    WHERE t1.package_id = t2.package_id
+                    AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - 14
+                 ) + t1.count
                  WHERE t1.running_total = 0 AND tracking_type = 'page'
                  AND t1.package_id IS NOT NULL
                  AND t1.package_id != '~~not~found~~';'''
@@ -121,11 +136,11 @@ class LoadAnalytics(CkanCommand):
             # from 2 days before then in case new data is available.
             # If no date here then use 2010-01-01 as the start date
             engine = model.meta.engine
-            sql = '''SELECT date from tracking_summary
-                     ORDER BY date DESC LIMIT 1;'''
+            sql = '''SELECT tracking_date from tracking_summary
+                     ORDER BY tracking_date DESC LIMIT 1;'''
             result = engine.execute(sql).fetchall()
             if result:
-                start_date = result[0]['date']
+                start_date = result[0]['tracking_date']
                 start_date += datetime.timedelta(-2)
                 # convert date to datetime
                 combine = datetime.datetime.combine

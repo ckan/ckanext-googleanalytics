@@ -43,15 +43,17 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
                                   DEFAULT_RESOURCE_URL_TAG)
 
         routes = request.environ.get('pylons.routes_dict')
-        if (routes.get('controller') == 'package' and
-            routes.get('action') in ['read', 'resource_read']):
+        action =  routes.get('action')
+        controller = routes.get('controller')
+        if (controller == 'package' and \
+            action in ['search', 'read', 'resource_read']) or \
+            (controller == 'group' and action == 'read'):
 
             log.info("Tracking of resource downloads")
             show_downloads = (
                 asbool(config.get('googleanalytics.show_downloads', True)) and
-                routes.get('action') == 'read'
+                action == 'read' and controller == 'package'
             )
-
             # add download tracking link
             def js_attr(name, event):
                 attrs = event[1][1]

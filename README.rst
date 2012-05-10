@@ -25,15 +25,28 @@ Installation
 
     ::
 
-    $ pip install -e  hg+http://github.com/okfn/ckanext-googleanalytics.git#egg=ckanext-googleanalytics
+    $ pip install -e  git+https://github.com/okfn/ckanext-googleanalytics.git#egg=ckanext-googleanalytics
 
-2. Run the following command from ``src/ckanext-googleanalytics`` to
+2. Edit your development.ini (or similar) to provide these necessary parameters:
+
+    ::
+
+      googleanalytics.id = UA-1010101-1
+      googleanalytics.username = googleaccount@gmail.com
+      googleanalytics.password = googlepassword
+
+   Note that your password will probably be readable by other people;
+   so you may want to set up a new gmail account specifically for
+   accessing your gmail profile.
+
+
+3. Run the following command from ``src/ckanext-googleanalytics`` to
    set up the required database tables (of course, altering the
    ``--config`` option to point to your site config file)::
 
        paster initdb --config=../ckan/development.ini
 
-3. Edit your development.ini (or similar) to activate the extension
+4. Edit again your configuration ini file to activate the extension
    with:
 
    ::
@@ -43,17 +56,6 @@ Installation
    (If there are other plugins activated, add this to the list.  Each
    plugin should be separated with a space)
 
-   In the same file, configure the plugin with your analytics details:
-
-   ::
-
-      googleanalytics.id = UA-1010101-1
-      googleanalytics.username = googleaccount@gmail.com
-      googleanalytics.password = googlepassword
-
-   Note that your password will probably be readable by other people;
-   so you may want to set up a new gmail account specifically for
-   accessing your gmail profile.
 
    Finally, there are some optional configuration settings (shown here
    with their default settings)::
@@ -70,25 +72,25 @@ Installation
    string, but should ideally resemble a URL path segment, to make
    filtering for all resources easier in the Google Analytics web
    interface.
-   
+
    ``domain`` allows you to specify a domain against which Analytics
    will track users.  You will usually want to leave this as ``auto``;
    if you are tracking users from multiple subdomains, you might want
    to specify something like ``.mydomain.com``.  See `Google's
    documentation <http://code.google.com/apis/analytics/docs/gaJS/gaJSApiDomainDirectory.html#_gat.GA_Tracker_._setDomainName>`_ for more info.
 
-4. Restart CKAN (e.g. by restarting Apache)
+5. Restart CKAN (e.g. by restarting Apache)
 
-5. Wait a while for some stats to be recorded in Google
+6. Wait a while for some stats to be recorded in Google
 
-6. Import Google stats by running the following command from 
+7. Import Google stats by running the following command from
    ``src/ckanext-googleanalytics``::
 
 	paster loadanalytics --config=../ckan/development.ini
 
    (Of course, pointing config at your specific site config)
 
-7. Look at some stats within CKAN
+8. Look at some stats within CKAN
 
    Once your GA account has gathered some data, you can see some basic
    information about the most popular packages at:
@@ -98,7 +100,7 @@ Installation
    website is on the package page, where number of downloads are
    displayed next to each resource.
 
-8. Consider running the import command reguarly as a cron job, or
+9. Consider running the import command reguarly as a cron job, or
    remember to run it by hand, or your statistics won't get updated.
 
 Testing

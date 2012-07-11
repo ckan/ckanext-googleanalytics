@@ -6,6 +6,7 @@ from genshi import HTML
 from genshi.core import START, TEXT
 from genshi.filters.transform import INSIDE, EXIT
 from pylons import config, request
+import ckan.lib.helpers as h
 import ckan.plugins as p
 import gasnippet
 import commands
@@ -25,48 +26,62 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer, inherit=True)
 
     def configure(self, config):
-        self.config = config
         if (not 'googleanalytics.id' in config):
             msg = "Missing googleanalytics.id in config"
             raise GoogleAnalyticsException(msg)
 
+        ga_id = config['googleanalytics.id']
+        ga_domain = config.get('googleanalytics.domain', 'auto')
+        js_url = h.url_for_static('/scripts/ckanext-googleanalytics.js')
+        self.resource_url = config.get('googleanalytics.resource_prefix',
+                                       commands.DEFAULT_RESOURCE_URL_TAG)
+        self.show_downloads = asbool(
+            config.get('googleanalytics.show_downloads', True)
+        )
+        self.track_events = asbool(
+            config.get('googleanalytics.track_events', False)
+        )
+
+        self.header_code = HTML(gasnippet.header_code % (ga_id, ga_domain))
+        self.footer_code = HTML(gasnippet.footer_code % js_url)
+
     def update_config(self, config):
         p.toolkit.add_template_directory(config, 'templates')
+        p.toolkit.add_public_directory(config, 'public')
 
     def after_map(self, map):
         map.redirect("/analytics/package/top", "/analytics/dataset/top")
-        map.connect('analytics', '/analytics/dataset/top',
-                    controller='ckanext.googleanalytics.controller:GAController',
-                    action='view')
+        map.connect(
+            'analytics', '/analytics/dataset/top',
+            controller='ckanext.googleanalytics.controller:GAController',
+            action='view'
+        )
         return map
 
     def filter(self, stream):
-        log.info("Inserting GA code into template")
-        ga_id = self.config['googleanalytics.id']
-        ga_domain = self.config.get('googleanalytics.domain', 'auto')
-        code = HTML(gasnippet.gacode % (ga_id, ga_domain))
-        stream = stream | Transformer('head').append(code)
-        resource_url = config.get('googleanalytics.resource_prefix',
-                                  commands.DEFAULT_RESOURCE_URL_TAG)
+        log.info("Inserting Google Analytics code into template")
+
+        stream = stream | Transformer('head').append(self.header_code)
+
+        if self.track_events:
+            stream = stream | Transformer('body/div[@id="scripts"]')\
+                .append(self.footer_code)
 
         routes = request.environ.get('pylons.routes_dict')
         action = routes.get('action')
         controller = routes.get('controller')
+
         if (controller == 'package' and \
             action in ['search', 'read', 'resource_read']) or \
             (controller == 'group' and action == 'read'):
 
             log.info("Tracking of resource downloads")
-            show_downloads = (
-                asbool(config.get('googleanalytics.show_downloads', True)) and
-                action == 'read' and controller == 'package'
-            )
 
             # add download tracking link
             def js_attr(name, event):
                 attrs = event[1][1]
                 href = attrs.get('href').encode('utf-8')
-                link = '%s%s' % (resource_url, urllib.quote(href))
+                link = '%s%s' % (self.resource_url, urllib.quote(href))
                 js = "javascript: _gaq.push(['_trackPageview', '%s']);" % link
                 return js
 
@@ -85,22 +100,15 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
                         yield INSIDE, (TEXT, HTML(download_html % count), pos)
                     yield mark, (kind, data, pos)
 
-            # and some styling
-            download_style = '''
-            <style type="text/css">
-               span.downloads-count {
-               font-size: 0.9em;
-               }
-            </style>
-            '''
-
             # perform the stream transform
             stream = stream | Transformer('//a[contains(@class, "resource-url-analytics")]')\
                 .attr('onclick', js_attr)
 
-            if show_downloads:
+            if (self.show_downloads and action == 'read' and
+                controller == 'package'):
                 stream = stream | Transformer('//a[contains(@class, "resource-url-analytics")]')\
                     .apply(download_adder)
-                stream = stream | Transformer('//head').append(HTML(download_style))
+                stream = stream | Transformer('//head')\
+                    .append(HTML(gasnippet.download_style))
 
         return stream

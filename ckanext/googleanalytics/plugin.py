@@ -1,17 +1,14 @@
 import logging
 import urllib
-import os
 from paste.deploy.converters import asbool
 from genshi.filters import Transformer
 from genshi import HTML
 from genshi.core import START, TEXT
 from genshi.filters.transform import INSIDE, EXIT
 from pylons import config, request
-from ckan.plugins import implements, SingletonPlugin
-from ckan.plugins import IGenshiStreamFilter, IConfigurable, IRoutes
-from ckan.plugins import IConfigurer
-from gasnippet import gacode
-from commands import DEFAULT_RESOURCE_URL_TAG
+import ckan.plugins as p
+import gasnippet
+import commands
 import dbutil
 
 log = logging.getLogger('ckanext.googleanalytics')
@@ -21,11 +18,11 @@ class GoogleAnalyticsException(Exception):
     pass
 
 
-class GoogleAnalyticsPlugin(SingletonPlugin):
-    implements(IConfigurable, inherit=True)
-    implements(IGenshiStreamFilter, inherit=True)
-    implements(IRoutes, inherit=True)
-    implements(IConfigurer, inherit=True)
+class GoogleAnalyticsPlugin(p.SingletonPlugin):
+    p.implements(p.IConfigurable, inherit=True)
+    p.implements(p.IGenshiStreamFilter, inherit=True)
+    p.implements(p.IRoutes, inherit=True)
+    p.implements(p.IConfigurer, inherit=True)
 
     def configure(self, config):
         self.config = config
@@ -33,17 +30,27 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
             msg = "Missing googleanalytics.id in config"
             raise GoogleAnalyticsException(msg)
 
+    def update_config(self, config):
+        p.toolkit.add_template_directory(config, 'templates')
+
+    def after_map(self, map):
+        map.redirect("/analytics/package/top", "/analytics/dataset/top")
+        map.connect('analytics', '/analytics/dataset/top',
+                    controller='ckanext.googleanalytics.controller:GAController',
+                    action='view')
+        return map
+
     def filter(self, stream):
         log.info("Inserting GA code into template")
         ga_id = self.config['googleanalytics.id']
         ga_domain = self.config.get('googleanalytics.domain', 'auto')
-        code = HTML(gacode % (ga_id, ga_domain))
+        code = HTML(gasnippet.gacode % (ga_id, ga_domain))
         stream = stream | Transformer('head').append(code)
         resource_url = config.get('googleanalytics.resource_prefix',
-                                  DEFAULT_RESOURCE_URL_TAG)
+                                  commands.DEFAULT_RESOURCE_URL_TAG)
 
         routes = request.environ.get('pylons.routes_dict')
-        action =  routes.get('action')
+        action = routes.get('action')
         controller = routes.get('controller')
         if (controller == 'package' and \
             action in ['search', 'read', 'resource_read']) or \
@@ -54,6 +61,7 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
                 asbool(config.get('googleanalytics.show_downloads', True)) and
                 action == 'read' and controller == 'package'
             )
+
             # add download tracking link
             def js_attr(name, event):
                 attrs = event[1][1]
@@ -96,19 +104,3 @@ class GoogleAnalyticsPlugin(SingletonPlugin):
                 stream = stream | Transformer('//head').append(HTML(download_style))
 
         return stream
-
-    def after_map(self, map):
-        map.redirect("/analytics/package/top", "/analytics/dataset/top")
-        map.connect('analytics', '/analytics/dataset/top',
-                    controller='ckanext.googleanalytics.controller:GAController',
-                    action='view')
-        return map
-
-    def update_config(self, config):
-        here = os.path.dirname(__file__)
-        rootdir = os.path.dirname(os.path.dirname(here))
-        template_dir = os.path.join(rootdir, 'ckanext',
-                                    'googleanalytics', 'templates')
-        config['extra_template_paths'] = ','.join(
-            [template_dir, config.get('extra_template_paths', '')]
-        )

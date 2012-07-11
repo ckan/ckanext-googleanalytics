@@ -5,7 +5,7 @@ from genshi.filters import Transformer
 from genshi import HTML
 from genshi.core import START, TEXT
 from genshi.filters.transform import INSIDE, EXIT
-from pylons import config, request
+import pylons
 import ckan.lib.helpers as h
 import ckan.plugins as p
 import gasnippet
@@ -67,7 +67,7 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
             stream = stream | Transformer('body/div[@id="scripts"]')\
                 .append(self.footer_code)
 
-        routes = request.environ.get('pylons.routes_dict')
+        routes = pylons.request.environ.get('pylons.routes_dict')
         action = routes.get('action')
         controller = routes.get('controller')
 

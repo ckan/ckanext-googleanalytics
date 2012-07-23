@@ -60,12 +60,10 @@ Installation
    Finally, there are some optional configuration settings (shown here
    with their default settings)::
 
-      googleanalytics.show_downloads = true
       googleanalytics.resource_prefix = /downloads/
       googleanalytics.domain = auto
-
-   If ``show_downloads`` is set, a download count for resources will
-   be displayed on individual package pages.
+      googleanalytics.show_downloads = true
+      googleanalytics.track_events = false
 
    ``resource_prefix`` is an arbitrary identifier so that we can query
    for downloads in Google Analytics.  It can theoretically be any
@@ -76,8 +74,16 @@ Installation
    ``domain`` allows you to specify a domain against which Analytics
    will track users.  You will usually want to leave this as ``auto``;
    if you are tracking users from multiple subdomains, you might want
-   to specify something like ``.mydomain.com``.  See `Google's
-   documentation <http://code.google.com/apis/analytics/docs/gaJS/gaJSApiDomainDirectory.html#_gat.GA_Tracker_._setDomainName>`_ for more info.
+   to specify something like ``.mydomain.com``.
+   See `Google's documentation
+   <http://code.google.com/apis/analytics/docs/gaJS/gaJSApiDomainDirectory.html#_gat.GA_Tracker_._setDomainName>`_
+   for more info.
+
+   If ``show_downloads`` is set, a download count for resources will
+   be displayed on individual package pages.
+
+   If ``track_events`` is set, Google Analytics event tracking will be
+   enabled.
 
 5. Restart CKAN (e.g. by restarting Apache)
 

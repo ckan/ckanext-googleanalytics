@@ -2,8 +2,6 @@
   $(document).ready(function () {
     // Google Analytics event tracking
 
-    // alert($(this).attr('href'));
-
     // group links on home page
     $('body.home div.group a').click(function() {
       _gaq.push(['_trackEvent', 'Home', 'Click: Group Link', $(this).attr('href')]);
@@ -31,6 +29,20 @@
       _gaq.push(['_trackEvent', 'User', 'Click: Dataset Link', $(this).attr('href')]);
     });
 
+    // Compare Button on /dataset/history/X
+    $('body.package.history form#dataset-revisions input[name="diff"]').click(function() {
+      _gaq.push(['_trackEvent', 'Dataset', 'Click: Button', 'Compare History']);
+    });
+
+    // Tags on right hand sidebar of /dataset/X
+    $('body.package.read div#sidebar h3')
+      .filter(function(index) {return $(this).text().indexOf("Tags") != -1;})
+      .next('ul')
+      .find('a')
+      .click(function() {
+      _gaq.push(['_trackEvent', 'Dataset', 'Click: Tag', $(this).attr('href')]);
+    });
+
     // Any of the group links on /group
     $('body.group.index table.groups a').click(function() {
       _gaq.push(['_trackEvent', 'Group', 'Click: Group Link', $(this).attr('href')]);
@@ -38,7 +50,7 @@
 
     // Clicking any of the right hand sidebar tags on /group/X
     $('body.group.read div#sidebar h2')
-      .filter(function(index) {return $(this).text() === "Tags";})
+      .filter(function(index) {return $(this).text().indexOf("Tags") != -1;})
       .next('ul')
       .find('a')
       .click(function() {
@@ -46,10 +58,15 @@
     });
 
     // Visiting /group/history/X
+    $('body.group div#minornavigation ul.nav a')
+      .filter(function(index) {return $(this).text().indexOf("History") != -1;})
+      .click(function() {
+      _gaq.push(['_trackEvent', 'Group', 'Click: History Tab', $(this).attr('href')]);
+    });
+
     // Compare Button on /group/history/X
-    // Compare Button on /dataset/history/X
-    // Tags on right hand sidebar of /dataset/X
-    // Download button on any /dataset/X/resource[> page
-    // Data API button on any /dataset/X/resource[> page
+    $('body.group.history form#group-revisions input[name="diff"]').click(function() {
+      _gaq.push(['_trackEvent', 'Group', 'Click: Button', 'Compare History']);
+    });
   });
 }(jQuery));

@@ -1,4 +1,3 @@
-import os
 import httplib
 from unittest import TestCase
 
@@ -11,7 +10,7 @@ from mockgoogleanalytics import runmockserver
 from ckanext.googleanalytics.commands import LoadAnalytics
 from ckanext.googleanalytics.commands import InitDB
 from ckanext.googleanalytics import dbutil
-from ckanext.googleanalytics.gasnippet import gacode
+import ckanext.googleanalytics.gasnippet as gasnippet
 
 
 class MockClient(httplib.HTTPConnection):
@@ -41,7 +40,7 @@ class TestConfig(TestCase):
 class TestLoadCommand(TestCase):
     @classmethod
     def setup_class(cls):
-        InitDB("initdb").run([]) # set up database tables
+        InitDB("initdb").run([])  # set up database tables
 
         config = appconfig('config:test.ini', relative_to=conf_dir)
         config.local_conf['ckan.plugins'] = 'googleanalytics'
@@ -66,7 +65,8 @@ class TestLoadCommand(TestCase):
 
     def test_analytics_snippet(self):
         response = self.app.get(url_for(controller='tag', action='index'))
-        code = gacode % (self.config['googleanalytics.id'], 'auto')
+        code = gasnippet.header_code % (self.config['googleanalytics.id'],
+                                        'auto')
         assert code in response.body
 
     def test_top_packages(self):
@@ -89,16 +89,6 @@ class TestLoadCommand(TestCase):
         ))
         assert "[downloaded 4 times]" in response.body
 
-    def test_js_inserted_dataset_view(self):
-        command = LoadAnalytics("loadanalytics")
-        command.TEST_HOST = MockClient('localhost', 6969)
-        command.CONFIG = self.config
-        command.run([])
-        response = self.app.get(url_for(
-            controller='package', action='read', id='annakarenina'
-        ))
-        assert 'onclick="javascript: _gaq.push(' in response.body
-
     def test_js_inserted_resource_view(self):
         from nose import SkipTest
         raise SkipTest("Test won't work until CKAN 1.5.2")
@@ -119,4 +109,3 @@ class TestLoadCommand(TestCase):
             resource_id=resource_id
         ))
         assert 'onclick="javascript: _gaq.push(' in response.body
-

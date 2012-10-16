@@ -23,6 +23,11 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer, inherit=True)
 
     def configure(self, config):
+        '''Load config settings for this extension from config file.
+
+        See IConfigurable.
+
+        '''
         if (not 'googleanalytics.id' in config):
             msg = "Missing googleanalytics.id in config"
             raise GoogleAnalyticsException(msg)
@@ -44,10 +49,20 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         self.footer_code = genshi.HTML(gasnippet.footer_code % js_url)
 
     def update_config(self, config):
+        '''Change the CKAN (Pylons) environment configuration.
+
+        See IConfigurer.
+
+        '''
         p.toolkit.add_template_directory(config, 'legacy_templates')
         p.toolkit.add_public_directory(config, 'legacy_public')
 
     def after_map(self, map):
+        '''Add new routes that this extension's controllers handle.
+
+        See IRoutes.
+
+        '''
         map.redirect("/analytics/package/top", "/analytics/dataset/top")
         map.connect(
             'analytics', '/analytics/dataset/top',
@@ -57,6 +72,14 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         return map
 
     def filter(self, stream):
+        '''Insert Google Analytics code into legacy Genshi templates.
+
+        This is called by CKAN whenever any page is rendered, _if_ using old
+        CKAN 1.x legacy templates.
+
+        See IGenshiStreamFilter.
+
+        '''
         log.info("Inserting Google Analytics code into template")
 
         stream = stream | genshi.filters.Transformer('head').append(
@@ -70,9 +93,9 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         action = routes.get('action')
         controller = routes.get('controller')
 
-        if (controller == 'package' and \
-            action in ['search', 'read', 'resource_read']) or \
-            (controller == 'group' and action == 'read'):
+        if ((controller == 'package' and
+             action in ['search', 'read', 'resource_read']) or
+            (controller == 'group' and action == 'read')):
 
             log.info("Tracking of resource downloads")
 

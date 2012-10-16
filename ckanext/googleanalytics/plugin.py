@@ -46,8 +46,8 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         self.footer_code = HTML(gasnippet.footer_code % js_url)
 
     def update_config(self, config):
-        p.toolkit.add_template_directory(config, 'templates')
-        p.toolkit.add_public_directory(config, 'public')
+        p.toolkit.add_template_directory(config, 'legacy_templates')
+        p.toolkit.add_public_directory(config, 'legacy_public')
 
     def after_map(self, map):
         map.redirect("/analytics/package/top", "/analytics/dataset/top")

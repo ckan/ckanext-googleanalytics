@@ -1,16 +1,13 @@
 import logging
 import urllib
-from paste.deploy.converters import asbool
-from genshi.filters import Transformer
-from genshi import HTML
-from genshi.core import START, TEXT
-from genshi.filters.transform import INSIDE, EXIT
+import commands
+import dbutil
+import paste.deploy.converters as converters
+import genshi
 import pylons
 import ckan.lib.helpers as h
 import ckan.plugins as p
 import gasnippet
-import commands
-import dbutil
 
 log = logging.getLogger('ckanext.googleanalytics')
 
@@ -35,15 +32,16 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         js_url = h.url_for_static('/scripts/ckanext-googleanalytics.js')
         self.resource_url = config.get('googleanalytics.resource_prefix',
                                        commands.DEFAULT_RESOURCE_URL_TAG)
-        self.show_downloads = asbool(
+        self.show_downloads = converters.asbool(
             config.get('googleanalytics.show_downloads', True)
         )
-        self.track_events = asbool(
+        self.track_events = converters.asbool(
             config.get('googleanalytics.track_events', False)
         )
 
-        self.header_code = HTML(gasnippet.header_code % (ga_id, ga_domain))
-        self.footer_code = HTML(gasnippet.footer_code % js_url)
+        self.header_code = genshi.HTML(
+            gasnippet.header_code % (ga_id, ga_domain))
+        self.footer_code = genshi.HTML(gasnippet.footer_code % js_url)
 
     def update_config(self, config):
         p.toolkit.add_template_directory(config, 'legacy_templates')
@@ -61,11 +59,12 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
     def filter(self, stream):
         log.info("Inserting Google Analytics code into template")
 
-        stream = stream | Transformer('head').append(self.header_code)
+        stream = stream | genshi.filters.Transformer('head').append(
+              self.header_code)
 
         if self.track_events:
-            stream = stream | Transformer('body/div[@id="scripts"]')\
-                .append(self.footer_code)
+            stream = stream | genshi.filters.Transformer(
+                    'body/div[@id="scripts"]').append(self.footer_code)
 
         routes = pylons.request.environ.get('pylons.routes_dict')
         action = routes.get('action')
@@ -91,24 +90,28 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
                 [downloaded %s times]</span>'''
                 count = None
                 for mark, (kind, data, pos) in stream:
-                    if mark and kind == START:
+                    if mark and kind == genshi.core.START:
                         href = data[1].get('href')
                         if href:
                             count = dbutil.get_resource_visits_for_url(href)
-                    if count and mark is EXIT:
+                    if count and mark is genshi.filters.transform.EXIT:
                         # emit count
-                        yield INSIDE, (TEXT, HTML(download_html % count), pos)
+                        yield genshi.filters.transform.INSIDE, (
+                            genshi.core.TEXT,
+                            genshi.HTML(download_html % count), pos)
                     yield mark, (kind, data, pos)
 
             # perform the stream transform
-            stream = stream | Transformer('//a[contains(@class, "resource-url-analytics")]')\
-                .attr('onclick', js_attr)
+            stream = stream | genshi.filters.Transformer(
+                '//a[contains(@class, "resource-url-analytics")]').attr(
+                    'onclick', js_attr)
 
             if (self.show_downloads and action == 'read' and
                 controller == 'package'):
-                stream = stream | Transformer('//a[contains(@class, "resource-url-analytics")]')\
-                    .apply(download_adder)
-                stream = stream | Transformer('//head')\
-                    .append(HTML(gasnippet.download_style))
+                stream = stream | genshi.filters.Transformer(
+                    '//a[contains(@class, "resource-url-analytics")]').apply(
+                        download_adder)
+                stream = stream | genshi.filters.Transformer('//head').append(
+                    genshi.HTML(gasnippet.download_style))
 
         return stream

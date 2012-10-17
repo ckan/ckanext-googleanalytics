@@ -57,7 +57,6 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
             p.toolkit.add_public_directory(config, 'legacy_public')
         else:
             p.toolkit.add_template_directory(config, 'templates')
-            p.toolkit.add_public_directory(config, 'public')
 
     def after_map(self, map):
         '''Add new routes that this extension's controllers handle.
@@ -182,6 +181,13 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         templates in this extension, see ITemplateHelpers.
 
         '''
+
+        # This method is disabled because Google Analytics Event Tracking
+        # support has not been ported to CKAN 2.0 yet
+        # (ckanext/googleanalytics/legacy_public/scripts/ckanext-googleanalytics.js
+        # has not been ported to CKAN 2.0 yet)
+        return None
+
         if self.track_events:
             return p.toolkit.render_snippet(
                 'googleanalytics/snippets/googleanalytics_footer.html')

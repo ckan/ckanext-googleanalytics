@@ -1,0 +1,15 @@
+{% ckan_extends %}
+
+{% block links %}
+  {{ super() }}
+  {% block googleanalytics_header %}
+    {{ h.googleanalytics_header() }}
+  {% endblock %}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% block googleanalytics_footer %}
+    {{ h.googleanalytics_footer() }}
+  {% endblock %}
+{% endblock %}

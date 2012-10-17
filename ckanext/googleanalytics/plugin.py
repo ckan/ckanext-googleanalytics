@@ -21,6 +21,7 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
     p.implements(p.IGenshiStreamFilter, inherit=True)
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IConfigurer, inherit=True)
+    p.implements(p.ITemplateHelpers)
 
     def configure(self, config):
         '''Load config settings for this extension from config file.
@@ -28,25 +29,22 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         See IConfigurable.
 
         '''
-        if (not 'googleanalytics.id' in config):
+        if 'googleanalytics.id' not in config:
             msg = "Missing googleanalytics.id in config"
             raise GoogleAnalyticsException(msg)
+        self.googleanalytics_id = config['googleanalytics.id']
+        self.googleanalytics_domain = config.get(
+                'googleanalytics.domain', 'auto')
+        self.googleanalytics_javascript_url = h.url_for_static(
+                '/scripts/ckanext-googleanalytics.js')
 
-        ga_id = config['googleanalytics.id']
-        ga_domain = config.get('googleanalytics.domain', 'auto')
-        js_url = h.url_for_static('/scripts/ckanext-googleanalytics.js')
-        self.resource_url = config.get('googleanalytics.resource_prefix',
-                                       commands.DEFAULT_RESOURCE_URL_TAG)
+        self.googleanalytics_resource_prefix = config.get(
+          'googleanalytics.resource_prefix', commands.DEFAULT_RESOURCE_URL_TAG)
+
         self.show_downloads = converters.asbool(
-            config.get('googleanalytics.show_downloads', True)
-        )
+            config.get('googleanalytics.show_downloads', True))
         self.track_events = converters.asbool(
-            config.get('googleanalytics.track_events', False)
-        )
-
-        self.header_code = genshi.HTML(
-            gasnippet.header_code % (ga_id, ga_domain))
-        self.footer_code = genshi.HTML(gasnippet.footer_code % js_url)
+            config.get('googleanalytics.track_events', False))
 
     def update_config(self, config):
         '''Change the CKAN (Pylons) environment configuration.
@@ -54,8 +52,12 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         See IConfigurer.
 
         '''
-        p.toolkit.add_template_directory(config, 'legacy_templates')
-        p.toolkit.add_public_directory(config, 'legacy_public')
+        if converters.asbool(config.get('ckan.legacy_templates', 'false')):
+            p.toolkit.add_template_directory(config, 'legacy_templates')
+            p.toolkit.add_public_directory(config, 'legacy_public')
+        else:
+            p.toolkit.add_template_directory(config, 'templates')
+            p.toolkit.add_public_directory(config, 'public')
 
     def after_map(self, map):
         '''Add new routes that this extension's controllers handle.
@@ -75,19 +77,26 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         '''Insert Google Analytics code into legacy Genshi templates.
 
         This is called by CKAN whenever any page is rendered, _if_ using old
-        CKAN 1.x legacy templates.
+        CKAN 1.x legacy templates. If using new CKAN 2.0 Jinja templates, the
+        template helper methods below are used instead.
 
         See IGenshiStreamFilter.
 
         '''
         log.info("Inserting Google Analytics code into template")
 
+        # Add the Google Analytics tracking code into the page header.
+        header_code = genshi.HTML(gasnippet.header_code
+            % (self.googleanalytics_id, self.googleanalytics_domain))
         stream = stream | genshi.filters.Transformer('head').append(
-              self.header_code)
+                header_code)
 
+        # Add the Google Analytics Event Tracking script into the page footer.
         if self.track_events:
+            footer_code = genshi.HTML(
+                gasnippet.footer_code % self.googleanalytics_javascript_url)
             stream = stream | genshi.filters.Transformer(
-                    'body/div[@id="scripts"]').append(self.footer_code)
+                    'body/div[@id="scripts"]').append(footer_code)
 
         routes = pylons.request.environ.get('pylons.routes_dict')
         action = routes.get('action')
@@ -103,7 +112,8 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
             def js_attr(name, event):
                 attrs = event[1][1]
                 href = attrs.get('href').encode('utf-8')
-                link = '%s%s' % (self.resource_url, urllib.quote(href))
+                link = '%s%s' % (self.googleanalytics_resource_prefix,
+                                 urllib.quote(href))
                 js = "javascript: _gaq.push(['_trackPageview', '%s']);" % link
                 return js
 
@@ -138,3 +148,40 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
                     genshi.HTML(gasnippet.download_style))
 
         return stream
+
+    def get_helpers(self):
+        '''Return the CKAN 2.0 template helper functions this plugin provides.
+
+        See ITemplateHelpers.
+
+        '''
+        return {'googleanalytics_header': self.googleanalytics_header,
+                'googleanalytics_footer': self.googleanalytics_footer
+                }
+
+    def googleanalytics_header(self):
+        '''Render the googleanalytics_header snippet for CKAN 2.0 templates.
+
+        This is a template helper function that renders the
+        googleanalytics_header jinja snippet. To be called from the jinja
+        templates in this extension, see ITemplateHelpers.
+
+        '''
+        data = {'googleanalytics_id': self.googleanalytics_id,
+                'googleanalytics_domain': self.googleanalytics_domain}
+        return p.toolkit.render_snippet(
+            'googleanalytics/snippets/googleanalytics_header.html', data)
+
+    def googleanalytics_footer(self):
+        '''Render the googleanalytics_footer snippet for CKAN 2.0 templates.
+
+        If self.track_events is True return the rendered
+        googleanalytics_footer jinja snippet, otherwise return None.
+
+        This is a template helper function to be called from the jinja
+        templates in this extension, see ITemplateHelpers.
+
+        '''
+        if self.track_events:
+            return p.toolkit.render_snippet(
+                'googleanalytics/snippets/googleanalytics_footer.html')

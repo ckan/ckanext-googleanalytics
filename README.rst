@@ -55,7 +55,11 @@ Installation
       ckan.plugins = googleanalytics
 
    (If there are other plugins activated, add this to the list.  Each
-   plugin should be separated with a space)
+   plugin should be separated with a space). If you are using this plugin
+   with a version of CKAN < 2.0 then you should also set the following to
+   make sure the correct templates are found for the reports
+
+       ckan.legacy_templates = true
 
 
    Finally, there are some optional configuration settings (shown here

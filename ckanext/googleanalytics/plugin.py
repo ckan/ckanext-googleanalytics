@@ -170,24 +170,3 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
                 'googleanalytics_domain': self.googleanalytics_domain}
         return p.toolkit.render_snippet(
             'googleanalytics/snippets/googleanalytics_header.html', data)
-
-    def googleanalytics_footer(self):
-        '''Render the googleanalytics_footer snippet for CKAN 2.0 templates.
-
-        If self.track_events is True return the rendered
-        googleanalytics_footer jinja snippet, otherwise return None.
-
-        This is a template helper function to be called from the jinja
-        templates in this extension, see ITemplateHelpers.
-
-        '''
-
-        # This method is disabled because Google Analytics Event Tracking
-        # support has not been ported to CKAN 2.0 yet
-        # (ckanext/googleanalytics/legacy_public/scripts/ckanext-googleanalytics.js
-        # has not been ported to CKAN 2.0 yet)
-        return None
-
-        if self.track_events:
-            return p.toolkit.render_snippet(
-                'googleanalytics/snippets/googleanalytics_footer.html')

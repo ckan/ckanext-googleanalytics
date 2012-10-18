@@ -3,7 +3,7 @@ CKAN Google Analytics Extension
 
 **Status:** Production
 
-**CKAN Version:** 1.5.*
+**CKAN Version:** >= 1.5.*
 
 
 Overview
@@ -95,7 +95,7 @@ Installation
 7. Import Google stats by running the following command from
    ``src/ckanext-googleanalytics``::
 
-	paster loadanalytics token.dat 2012-10-10 --config=../ckan/development.ini
+	paster loadanalytics token.dat --config=../ckan/development.ini
 
    (Of course, pointing config at your specific site config and token.dat at the
    oauth file generated from the authorization step)

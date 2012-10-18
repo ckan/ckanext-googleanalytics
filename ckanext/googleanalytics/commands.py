@@ -1,10 +1,11 @@
+import os
+import re
 import logging
 import datetime
 import time
 
 from pylons import config as pylonsconfig
 from ckan.lib.cli import CkanCommand
-from gdata.analytics import client
 import ckan.model as model
 
 import dbutil
@@ -12,6 +13,35 @@ import dbutil
 log = logging.getLogger('ckanext.googleanalytics')
 PACKAGE_URL = '/dataset/'  # XXX get from routes...
 DEFAULT_RESOURCE_URL_TAG = '/downloads/'
+
+RESOURCE_URL_REGEX = re.compile('/dataset/[a-z0-9-_]+/resource/([a-z0-9-_]+)')
+DATASET_EDIT_REGEX = re.compile('/dataset/edit/([a-z0-9-_]+)')
+
+
+class GetAuthToken(CkanCommand):
+    """ Get's the Google auth token
+
+    Usage: paster getauthtoken <credentials_file>
+
+    Where <credentials_file> is the file name containing the details
+    for the service (obtained from https://code.google.com/apis/console).
+    By default this is set to credentials.json
+    """
+    summary = __doc__.split('\n')[0]
+    usage = __doc__
+    max_args = 1
+    min_args = 0
+
+    def command(self):
+        """
+        In this case we don't want a valid service, but rather just to
+        force the user through the auth flow. We allow this to complete to
+        act as a form of verification instead of just getting the token and
+        assuming it is correct.
+        """
+        from ga_auth import init_service
+        init_service('token.dat',
+                      self.args[0] if self.args else 'credentials.json')
 
 
 class InitDB(CkanCommand):
@@ -24,8 +54,6 @@ class InitDB(CkanCommand):
 
     def command(self):
         self._load_config()
-        # funny dance we need to do to make sure we've got a
-        # configured session
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
         dbutil.init_tables()
@@ -37,14 +65,15 @@ class LoadAnalytics(CkanCommand):
     in a local database
 
     Options:
-        internal [date] use ckan internal tracking tables
+        <token_file> internal [date] use ckan internal tracking tables
+                        token_file specifies the OAUTH token file
                         date specifies start date for retrieving
                         analytics data YYYY-MM-DD format
     """
     summary = __doc__.split('\n')[0]
     usage = __doc__
-    max_args = 2
-    min_args = 0
+    max_args = 3
+    min_args = 1
     TEST_HOST = None
     CONFIG = None
 
@@ -56,7 +85,7 @@ class LoadAnalytics(CkanCommand):
         self.resource_url_tag = self.CONFIG.get(
             'googleanalytics.resource_prefix',
             DEFAULT_RESOURCE_URL_TAG)
-        self.setup_ga_connection()
+
         # funny dance we need to do to make sure we've got a
         # configured session
         model.Session.remove()
@@ -71,10 +100,10 @@ class LoadAnalytics(CkanCommand):
         engine.execute(sql)
 
         for url, count in packages_data.iteritems():
-            if url.startswith(DEFAULT_RESOURCE_URL_TAG):
+            # If it matches the resource then we should mark it as a resource.
+            # For resources we don't currently find the package ID.
+            if RESOURCE_URL_REGEX.match(url):
                 tracking_type = 'resource'
-                # remove the leading identifier
-                url = url[len(DEFAULT_RESOURCE_URL_TAG):]
             else:
                 tracking_type = 'page'
 
@@ -90,6 +119,14 @@ class LoadAnalytics(CkanCommand):
                      ,'~~not~found~~')
                  WHERE t.package_id IS NULL AND tracking_type = 'page';'''
         engine.execute(sql, PACKAGE_URL)
+
+        # get ids for dataset edit urls which aren't captured otherwise
+        sql = '''UPDATE tracking_summary t
+                 SET package_id = COALESCE(
+                     (SELECT id FROM package p WHERE t.url =  %s || p.name)
+                     ,'~~not~found~~')
+                 WHERE t.package_id = '~~not~found~~' AND tracking_type = 'page';'''
+        engine.execute(sql, '%sedit/' % PACKAGE_URL)
 
         # update summary totals for resources
         sql = '''UPDATE tracking_summary t1
@@ -128,9 +165,9 @@ class LoadAnalytics(CkanCommand):
         engine.execute(sql)
 
     def bulk_import(self):
-        if len(self.args) == 2:
+        if len(self.args) == 3:
             # Get summeries from specified date
-            start_date = datetime.datetime.strptime(self.args[1], '%Y-%m-%d')
+            start_date = datetime.datetime.strptime(self.args[2], '%Y-%m-%d')
         else:
             # No date given. See when we last have data for and get data
             # from 2 days before then in case new data is available.
@@ -156,8 +193,8 @@ class LoadAnalytics(CkanCommand):
             # sleep to rate limit requests
             time.sleep(0.25)
             start_date = stop_date
-            log.info('%s recieved %s' % (len(packages_data), start_date))
-            print '%s recieved %s' % (len(packages_data), start_date)
+            log.info('%s received %s' % (len(packages_data), start_date))
+            print '%s received %s' % (len(packages_data), start_date)
 
     def get_ga_data_new(self, start_date=None, end_date=None):
         """Get raw data from Google Analtyics for packages and
@@ -171,7 +208,7 @@ class LoadAnalytics(CkanCommand):
         end_date = end_date.strftime("%Y-%m-%d")
 
         packages = {}
-        query = 'ga:pagePath=~^%s,ga:pagePath=~^%s' % \
+        query = 'ga:pagePath=~%s,ga:pagePath=~%s' % \
                     (PACKAGE_URL, self.resource_url_tag)
         metrics = 'ga:uniquePageviews'
         sort = '-ga:uniquePageviews'
@@ -179,36 +216,57 @@ class LoadAnalytics(CkanCommand):
         start_index = 1
         max_results = 10000
         # data retrival is chunked
-        while True:
-            feed = self.ga_query(query_filter=query,
-                                 from_date=start_date,
+        completed = False
+        while not completed:
+            results = self.service.data().ga().get(ids='ga:%s' % self.profile_id,
+                                 filters=query,
+                                 dimensions='ga:pagePath',
+                                 start_date=start_date,
                                  start_index=start_index,
                                  max_results=max_results,
                                  metrics=metrics,
                                  sort=sort,
-                                 to_date=end_date)
-            for entry in feed.entry:
-                for dim in entry.dimension:
-                    if dim.name == "ga:pagePath":
-                        package = dim.value
-                        count = entry.get_metric(
-                            'ga:uniquePageviews').value or 0
-                        packages[package] = int(count)
-            if len(feed.entry) < max_results:
-                break
+                                 end_date=end_date).execute()
+            result_count = len(results.get('rows', []))
+            if result_count < max_results:
+                completed = True
+
+            for result in results.get('rows', []):
+                package = result[0]
+                package = '/' + '/'.join(package.split('/')[2:])
+                count = result[1]
+                packages[package] = int(count)
+
             start_index += max_results
+
             # rate limiting
-            time.sleep(0.25)
+            time.sleep(0.2)
         return packages
 
     def parse_and_save(self):
         """Grab raw data from Google Analytics and save to the database"""
-        if len(self.args):
-            if self.args[0].lower() != 'internal':
-                raise Exception('Illegal argument %s' % self.args[0])
+        from ga_auth import (init_service, get_profile_id)
+
+        tokenfile = self.args[0]
+        if not os.path.exists(tokenfile):
+            raise Exception('Cannot find the token file %s' % self.args[0])
+
+        try:
+            self.service = init_service(self.args[0], None)
+        except TypeError:
+            print ('Have you correctly run the getauthtoken task and '
+                   'specified the correct file here')
+            raise Exception('Unable to create a service')
+        self.profile_id = get_profile_id(self.service)
+
+        if len(self.args) > 1:
+            if len(self.args) > 2 and self.args[1].lower() != 'internal':
+                raise Exception('Illegal argument %s' % self.args[1])
             self.bulk_import()
         else:
-            packages_data = self.get_ga_data()
+            query = 'ga:pagePath=~%s,ga:pagePath=~%s' % \
+                    (PACKAGE_URL, self.resource_url_tag)
+            packages_data = self.get_ga_data(query_filter=query)
             self.save_ga_data(packages_data)
             log.info("Saved %s records from google" % len(packages_data))
 
@@ -218,10 +276,11 @@ class LoadAnalytics(CkanCommand):
         for identifier, visits in packages_data.items():
             recently = visits.get('recent', 0)
             ever = visits.get('ever', 0)
-            if identifier.startswith(self.resource_url_tag):
+            matches = RESOURCE_URL_REGEX.match(identifier)
+            if matches:
                 resource_url = identifier[len(self.resource_url_tag):]
                 resource = model.Session.query(model.Resource).autoflush(True)\
-                           .filter_by(url=resource_url).first()
+                           .filter_by(id=matches.group(1)).first()
                 if not resource:
                     log.warning("Couldn't find resource %s" % resource_url)
                     continue
@@ -240,35 +299,6 @@ class LoadAnalytics(CkanCommand):
                 log.info("Updated %s with %s visits" % (item.id, visits))
         model.Session.commit()
 
-    def setup_ga_connection(self):
-        """Log into the Google Data API, and find out the ``table_id``
-        that is associated with the profile, for later querying
-        """
-        SOURCE_APP_NAME = "CKAN Google Analytics Plugin"
-        username = self.CONFIG.get('googleanalytics.username')
-        password = self.CONFIG.get('googleanalytics.password')
-        ga_id = self.CONFIG.get('googleanalytics.id')
-        if not username or not password or not ga_id:
-            raise Exception("No googleanalytics profile info in config")
-        if self.TEST_HOST:
-            my_client = client.AnalyticsClient(source=SOURCE_APP_NAME,
-                                               http_client=self.TEST_HOST)
-        else:
-            my_client = client.AnalyticsClient(source=SOURCE_APP_NAME)
-        my_client.ClientLogin(username, password, SOURCE_APP_NAME)
-        account_query = client.AccountFeedQuery({'max-results': '300'})
-        feed = my_client.GetAccountFeed(account_query)
-        table_id = None
-        for entry in feed.entry:
-            if entry.get_property("ga:webPropertyId").value == ga_id:
-                table_id = entry.table_id.text
-                break
-        if not table_id:
-            msg = "Couldn't find a profile with id '%s'" % ga_id
-            raise Exception(msg)
-        self.table_id = table_id
-        self.client = my_client
-
     def ga_query(self, query_filter=None, from_date=None, to_date=None,
                  start_index=1, max_results=10000, metrics=None, sort=None):
         """Execute a query against Google Analytics
@@ -276,22 +306,26 @@ class LoadAnalytics(CkanCommand):
         if not to_date:
             now = datetime.datetime.now()
             to_date = now.strftime("%Y-%m-%d")
+        if isinstance(from_date, datetime.date):
+            from_date = from_date.strftime("%Y-%m-%d")
         if not metrics:
             metrics = 'ga:visits,ga:visitors,ga:newVisits,ga:uniquePageviews'
         if not sort:
-            sort = '-ga:newVisits'
-        query = client.DataFeedQuery({'ids': '%s' % self.table_id,
-                                      'start-date': from_date,
-                                      'end-date': to_date,
-                                      'dimensions': 'ga:pagePath',
-                                      'metrics': metrics,
-                                      'sort': sort,
-                                      'start-index': start_index,
-                                      'filters': query_filter,
-                                      'max-results': max_results
-                                      })
-        feed = self.client.GetDataFeed(query)
-        return feed
+            sort = '-ga:uniquePageviews'
+
+        print '%s -> %s' % (from_date, to_date)
+
+        results = self.service.data().ga().get(ids='ga:' + self.profile_id,
+                                      start_date=from_date,
+                                      end_date=to_date,
+                                      dimensions='ga:pagePath',
+                                      metrics=metrics,
+                                      sort=sort,
+                                      start_index=start_index,
+                                      filters=query_filter,
+                                      max_results=max_results
+                                      ).execute()
+        return results
 
     def get_ga_data(self, query_filter=None, start_date=None, end_date=None):
         """Get raw data from Google Analtyics for packages and
@@ -306,19 +340,25 @@ class LoadAnalytics(CkanCommand):
         recent_date = recent_date.strftime("%Y-%m-%d")
         floor_date = datetime.date(2005, 1, 1)
         packages = {}
-        queries = ['ga:pagePath=~^%s' % PACKAGE_URL,
-                   'ga:pagePath=~^%s' % self.resource_url_tag]
+        queries = ['ga:pagePath=~%s' % PACKAGE_URL]
         dates = {'recent': recent_date, 'ever': floor_date}
-        for date_name, date in dates.items():
+        for date_name, date in dates.iteritems():
             for query in queries:
-                feed = self.ga_query(query_filter=query,
-                                     from_date=date)
-                for entry in feed.entry:
-                    for dim in entry.dimension:
-                        if dim.name == "ga:pagePath":
-                            package = dim.value
-                            count = entry.get_metric(
-                                'ga:uniquePageviews').value or 0
-                            packages.setdefault(package, {})[date_name] = count
-        return packages
+                results = self.ga_query(query_filter=query,
+                                        metrics='ga:uniquePageviews',
+                                        from_date=date)
+                if 'rows' in results:
+                    for result in results.get('rows'):
+                        package = result[0]
+                        if not package.startswith(PACKAGE_URL):
+                            package = '/' + '/'.join(package.split('/')[2:])
 
+                        count = result[1]
+                        # Make sure we add the different representations of the same
+                        # dataset /mysite.com & /www.mysite.com ...
+                        val = 0
+                        if package in packages and date_name in packages[package]:
+                            val += packages[package][date_name]
+                        packages.setdefault(package, {})[date_name] = \
+                            int(count) + val
+        return packages

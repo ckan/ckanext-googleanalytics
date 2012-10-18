@@ -6,3 +6,5 @@ syntax: glob
 *~
 build/
 dist/
+credentials.json
+token.dat

@@ -20,7 +20,8 @@ setup(
 	include_package_data=True,
 	zip_safe=False,
 	install_requires=[
-		'gdata'
+		'gdata',
+		'google-api-python-client'
 	],
 	entry_points=\
 	"""
@@ -31,5 +32,6 @@ setup(
         [paste.paster_command]
         loadanalytics = ckanext.googleanalytics.commands:LoadAnalytics
         initdb = ckanext.googleanalytics.commands:InitDB
+        getauthtoken = ckanext.googleanalytics.commands:GetAuthToken
 	""",
 )

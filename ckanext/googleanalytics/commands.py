@@ -6,7 +6,6 @@ import time
 
 from pylons import config as pylonsconfig
 from ckan.lib.cli import CkanCommand
-from gdata.analytics import client
 import ckan.model as model
 
 import dbutil
@@ -17,6 +16,7 @@ DEFAULT_RESOURCE_URL_TAG = '/downloads/'
 
 RESOURCE_URL_REGEX = re.compile('/dataset/[a-z0-9-_]+/resource/([a-z0-9-_]+)')
 DATASET_EDIT_REGEX = re.compile('/dataset/edit/([a-z0-9-_]+)')
+
 
 class GetAuthToken(CkanCommand):
     """ Get's the Google auth token
@@ -41,8 +41,7 @@ class GetAuthToken(CkanCommand):
         """
         from ga_auth import init_service
         init_service('token.dat',
-                      self.args[0] if self.args
-                                   else 'credentials.json')
+                      self.args[0] if self.args else 'credentials.json')
 
 
 class InitDB(CkanCommand):
@@ -55,8 +54,6 @@ class InitDB(CkanCommand):
 
     def command(self):
         self._load_config()
-        # funny dance we need to do to make sure we've got a
-        # configured session
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
         dbutil.init_tables()
@@ -88,7 +85,7 @@ class LoadAnalytics(CkanCommand):
         self.resource_url_tag = self.CONFIG.get(
             'googleanalytics.resource_prefix',
             DEFAULT_RESOURCE_URL_TAG)
-        self.setup_ga_connection()
+
         # funny dance we need to do to make sure we've got a
         # configured session
         model.Session.remove()
@@ -231,7 +228,7 @@ class LoadAnalytics(CkanCommand):
                                  sort=sort,
                                  end_date=end_date).execute()
             result_count = len(results.get('rows', []))
-            if  result_count < max_results:
+            if result_count < max_results:
                 completed = True
 
             for result in results.get('rows', []):
@@ -302,17 +299,6 @@ class LoadAnalytics(CkanCommand):
                 log.info("Updated %s with %s visits" % (item.id, visits))
         model.Session.commit()
 
-    def setup_ga_connection(self):
-        """Log into the Google Data API, and find out the ``table_id``
-        that is associated with the profile, for later querying
-        """
-        SOURCE_APP_NAME = "CKAN Google Analytics Plugin"
-        username = self.CONFIG.get('googleanalytics.username')
-        password = self.CONFIG.get('googleanalytics.password')
-        ga_id = self.CONFIG.get('googleanalytics.id')
-        if not ga_id:
-            raise Exception("No googleanalytics profile info in config")
-
     def ga_query(self, query_filter=None, from_date=None, to_date=None,
                  start_index=1, max_results=10000, metrics=None, sort=None):
         """Execute a query against Google Analytics
@@ -320,7 +306,7 @@ class LoadAnalytics(CkanCommand):
         if not to_date:
             now = datetime.datetime.now()
             to_date = now.strftime("%Y-%m-%d")
-        if isinstance(from_date,datetime.date):
+        if isinstance(from_date, datetime.date):
             from_date = from_date.strftime("%Y-%m-%d")
         if not metrics:
             metrics = 'ga:visits,ga:visitors,ga:newVisits,ga:uniquePageviews'
@@ -354,8 +340,7 @@ class LoadAnalytics(CkanCommand):
         recent_date = recent_date.strftime("%Y-%m-%d")
         floor_date = datetime.date(2005, 1, 1)
         packages = {}
-        queries = ['ga:pagePath=~%s' % PACKAGE_URL] #,
-                   #'ga:pagePath=~%s' % self.resource_url_tag]
+        queries = ['ga:pagePath=~%s' % PACKAGE_URL]
         dates = {'recent': recent_date, 'ever': floor_date}
         for date_name, date in dates.iteritems():
             for query in queries:
@@ -374,6 +359,6 @@ class LoadAnalytics(CkanCommand):
                         val = 0
                         if package in packages and date_name in packages[package]:
                             val += packages[package][date_name]
-                        packages.setdefault(package, {})[date_name] = int(count) + val
+                        packages.setdefault(package, {})[date_name] = \
+                            int(count) + val
         return packages
-

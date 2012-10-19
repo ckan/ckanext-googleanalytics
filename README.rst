@@ -5,18 +5,40 @@ CKAN Google Analytics Extension
 
 **CKAN Version:** >= 1.5.*
 
+A CKAN extension that both sends tracking data to Google Analytics and
+retrieves statistics from Google Analytics and inserts them into CKAN pages.
 
-Overview
+Features
 --------
 
-A CKAN extension for doing things with Google Analytics:
+* Puts the Google Analytics asynchronous tracking code into your page headers
+  for basic Google Analytics page tracking.
 
-* It puts the relevant tracking code in your templates for you
-  (including tracking code for external resource download links)
+* Adds Google Analytics Event Tracking to resource download links, so that
+  resource downloads will be displayed as Events in the Google Analytics
+  reporting interface.
 
-* It provides a page showing top packages and resources
+* Adds Google Analytics Event Tracking to group links on the home page,
+  user profile links, editing and saving user profiles, etc.
 
-* It inserts download stats onto individual package pages
+  *Only if* ``googleanalytics.track_events = true`` *is in your CKAN ini file.*
+
+  *CKAN 1.x only*.
+
+* Puts download stats into dataset pages, e.g. "[downloaded 4 times]".
+
+  *CKAN 1.x only.*
+
+* Provides a ``/analytics/dataset/top`` page that shows the most popular
+  datasets and resources
+
+  *CKAN 1.x only*
+
+CKAN 1.x Support
+----------------
+
+To use ckanext-googleanalytics with CKAN 1.x, make sure you have
+``ckan.legacy_templates = true`` in your CKAN ini file.
 
 Installation
 ------------
@@ -40,14 +62,7 @@ Installation
    so you may want to set up a new gmail account specifically for
    accessing your gmail profile.
 
-
-3. Run the following command from ``src/ckanext-googleanalytics`` to
-   set up the required database tables (of course, altering the
-   ``--config`` option to point to your site config file)::
-
-       paster initdb --config=../ckan/development.ini
-
-4. Edit again your configuration ini file to activate the extension
+3. Edit again your configuration ini file to activate the plugin
    with:
 
    ::
@@ -55,19 +70,19 @@ Installation
       ckan.plugins = googleanalytics
 
    (If there are other plugins activated, add this to the list.  Each
-   plugin should be separated with a space). If you are using this plugin
-   with a version of CKAN < 2.0 then you should also set the following to
-   make sure the correct templates are found for the reports
+   plugin should be separated with a space).
+
+4. If you are using this plugin with a version of CKAN < 2.0 then you should
+   also put the following in your ini file::
 
        ckan.legacy_templates = true
 
 
-   Finally, there are some optional configuration settings (shown here
+5. Finally, there are some optional configuration settings (shown here
    with their default settings)::
 
       googleanalytics.resource_prefix = /downloads/
       googleanalytics.domain = auto
-      googleanalytics.show_downloads = true
       googleanalytics.track_events = false
 
    ``resource_prefix`` is an arbitrary identifier so that we can query
@@ -84,27 +99,44 @@ Installation
    <http://code.google.com/apis/analytics/docs/gaJS/gaJSApiDomainDirectory.html#_gat.GA_Tracker_._setDomainName>`_
    for more info.
 
-   If ``show_downloads`` is set, a download count for resources will
-   be displayed on individual package pages.
-
    If ``track_events`` is set, Google Analytics event tracking will be
-   enabled.
+   enabled. *CKAN 1.x only.* *Note that event tracking for resource downloads
+   is always enabled,* ``track_events`` *enables event tracking for other
+   pages as well.*
 
-   Follow the steps described in the Authorization section below.
+Setting Up Statistics Retrieval from Google Analytics
+-----------------------------------------------------
 
-5. Restart CKAN (e.g. by restarting Apache)
+*CKAN 1.x only*
 
-6. Wait a while for some stats to be recorded in Google
+1. Run the following command from ``src/ckanext-googleanalytics`` to
+   set up the required database tables (of course, altering the
+   ``--config`` option to point to your site config file)::
 
-7. Import Google stats by running the following command from
+       paster initdb --config=../ckan/development.ini
+
+2. Optionally, add::
+
+       googleanalytics.show_downloads = true
+
+   to your CKAN ini file. If ``show_downloads`` is set, a download count for
+   resources will be displayed on individual package pages.
+
+3. Follow the steps in the *Authorization* section below.
+
+4. Restart CKAN (e.g. by restarting Apache)
+
+5. Wait a while for some stats to be recorded in Google
+
+6. Import Google stats by running the following command from
    ``src/ckanext-googleanalytics``::
 
-	paster loadanalytics token.dat --config=../ckan/development.ini
+       paster loadanalytics token.dat --config=../ckan/development.ini
 
    (Of course, pointing config at your specific site config and token.dat at the
    oauth file generated from the authorization step)
 
-8. Look at some stats within CKAN
+7. Look at some stats within CKAN
 
    Once your GA account has gathered some data, you can see some basic
    information about the most popular packages at:
@@ -114,14 +146,16 @@ Installation
    website is on the package page, where number of downloads are
    displayed next to each resource.
 
-9. Consider running the import command reguarly as a cron job, or
+8. Consider running the import command reguarly as a cron job, or
    remember to run it by hand, or your statistics won't get updated.
 
 
 Authorization
 --------------
 
-Before you can access the data, you need to set up the OAUTH details which you can do by following the `instructions <https://developers.google.com/analytics/resources/tutorials/hello-analytics-api>`_ the outcome of which will be a file called credentials.json which should look like credentials.json.template with the relevant fields completed. These steps are below for convenience:
+*CKAN 1.x only*
+
+Before ckanext-googleanalytics can retrieve statistics from Google Analytics, you need to set up the OAUTH details which you can do by following the `instructions <https://developers.google.com/analytics/resources/tutorials/hello-analytics-api>`_ the outcome of which will be a file called credentials.json which should look like credentials.json.template with the relevant fields completed. These steps are below for convenience:
 
 1. Visit the `Google APIs Console <https://code.google.com/apis/console>`_
 

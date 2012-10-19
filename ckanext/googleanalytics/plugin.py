@@ -38,13 +38,21 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         self.googleanalytics_javascript_url = h.url_for_static(
                 '/scripts/ckanext-googleanalytics.js')
 
-        self.googleanalytics_resource_prefix = config.get(
-          'googleanalytics.resource_prefix', commands.DEFAULT_RESOURCE_URL_TAG)
+        # If resource_prefix is not in config file then write the default value
+        # to the config dict, otherwise templates seem to get 'true' when they
+        # try to read resource_prefix from config.
+        if 'googleanalytics.resource_prefix' not in config:
+            config['googleanalytics.resource_prefix'] = (
+                    commands.DEFAULT_RESOURCE_URL_TAG)
+        self.googleanalytics_resource_prefix = config[
+            'googleanalytics.resource_prefix']
 
         self.show_downloads = converters.asbool(
             config.get('googleanalytics.show_downloads', True))
         self.track_events = converters.asbool(
             config.get('googleanalytics.track_events', False))
+
+        p.toolkit.add_resource('fanstatic_library', 'ckanext-googleanalytics')
 
     def update_config(self, config):
         '''Change the CKAN (Pylons) environment configuration.

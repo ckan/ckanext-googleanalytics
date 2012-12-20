@@ -52,7 +52,8 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         self.track_events = converters.asbool(
             config.get('googleanalytics.track_events', False))
 
-        p.toolkit.add_resource('fanstatic_library', 'ckanext-googleanalytics')
+        if not converters.asbool(config.get('ckan.legacy_templates', 'false')):
+            p.toolkit.add_resource('fanstatic_library', 'ckanext-googleanalytics')
 
     def update_config(self, config):
         '''Change the CKAN (Pylons) environment configuration.

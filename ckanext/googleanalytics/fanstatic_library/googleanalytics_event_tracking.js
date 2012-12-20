@@ -5,10 +5,12 @@ this.ckan.module('google-analytics', function(jQuery, _) {
       googleanalytics_resource_prefix: ''
     },
     initialize: function() {
-      resource_prefix = this.options.googleanalytics_resource_prefix;
-      jQuery('a.resource-url-analytics').on('click', function(){
-          resource_url = resource_prefix + encodeURIComponent(this.href);
-          _gaq.push(['_trackPageview', resource_url]);
+      jQuery('a.resource-url-analytics').on('click', function() {
+          var resource_prefix = this.options.googleanalytics_resource_prefix;
+          var resource_url = resource_prefix + encodeURIComponent(jQuery(this).prop('href'));
+          if (resource_url) {
+            _gaq.push(['_trackPageview', resource_url]);
+          }
       });
     }
   }

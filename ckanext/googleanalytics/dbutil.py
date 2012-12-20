@@ -3,7 +3,6 @@ from sqlalchemy.sql import select, text
 from sqlalchemy import func
 
 import ckan.model as model
-from ckan.authz import Authorizer
 from ckan.model.authz import PSEUDO_USER__VISITOR
 from ckan.lib.base import *
 

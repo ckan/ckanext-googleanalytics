@@ -81,7 +81,7 @@ Installation
 5. Finally, there are some optional configuration settings (shown here
    with their default settings)::
 
-      googleanalytics.resource_prefix = /downloads/
+      googleanalytics_resource_prefix = /downloads/
       googleanalytics.domain = auto
       googleanalytics.track_events = false
 

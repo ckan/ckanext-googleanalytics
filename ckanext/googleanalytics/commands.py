@@ -83,7 +83,7 @@ class LoadAnalytics(CkanCommand):
             self.CONFIG = pylonsconfig
 
         self.resource_url_tag = self.CONFIG.get(
-            'googleanalytics.resource_prefix',
+            'googleanalytics_resource_prefix',
             DEFAULT_RESOURCE_URL_TAG)
 
         # funny dance we need to do to make sure we've got a

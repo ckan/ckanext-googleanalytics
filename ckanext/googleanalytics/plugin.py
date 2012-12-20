@@ -41,11 +41,11 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         # If resource_prefix is not in config file then write the default value
         # to the config dict, otherwise templates seem to get 'true' when they
         # try to read resource_prefix from config.
-        if 'googleanalytics.resource_prefix' not in config:
-            config['googleanalytics.resource_prefix'] = (
+        if 'googleanalytics_resource_prefix' not in config:
+            config['googleanalytics_resource_prefix'] = (
                     commands.DEFAULT_RESOURCE_URL_TAG)
         self.googleanalytics_resource_prefix = config[
-            'googleanalytics.resource_prefix']
+            'googleanalytics_resource_prefix']
 
         self.show_downloads = converters.asbool(
             config.get('googleanalytics.show_downloads', True))

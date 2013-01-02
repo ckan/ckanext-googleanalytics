@@ -3,7 +3,7 @@ CKAN Google Analytics Extension
 
 **Status:** Production
 
-**CKAN Version:** 1.4.*
+**CKAN Version:** 1.5.1
 
 
 Overview

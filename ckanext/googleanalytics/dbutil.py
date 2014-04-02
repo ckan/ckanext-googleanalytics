@@ -80,8 +80,9 @@ def get_resource_visits_for_url(url):
 def get_top_packages(limit=20):
     items = []
     authorizer = Authorizer()
-    q = authorizer.authorized_query(PSEUDO_USER__VISITOR,
-                                    model.Package)
+    # caveat emptor: the query below will not filter out private
+    # or deleted datasets (TODO)
+    q = model.Session.query(model.Package)
     connection = model.Session.connection()
     package_stats = get_table('package_stats')
     s = select([package_stats.c.package_id,

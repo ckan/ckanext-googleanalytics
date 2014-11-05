@@ -3,6 +3,7 @@ from ckan.lib.base import BaseController, c, render, request
 import dbutil
 
 import urllib
+import urllib2
 
 import logging
 import ckan.logic as logic
@@ -47,10 +48,12 @@ class GAApiController(ApiController):
             data = urllib.urlencode(data_dict)
             log.debug("Sending API event to Google Analytics: "+data)
             # send analytics asynchronously
-            threading.Thread(target=urllib.urlopen,
+            threading.Thread(target=urllib2.urlopen,
                              args=(
                                  "http://www.google-analytics.com/collect",
-                                 data)).start()
+                                 data,
+                                 # timeout in seconds https://docs.python.org/2/library/urllib2.html#urllib2.urlopen
+                                 10)).start()
 
     def action(self, logic_function, ver=None):
         try:

@@ -8,6 +8,7 @@ import urllib2
 import logging
 import ckan.logic as logic
 import hashlib
+import Queue
 import threading
 from pylons import config
 
@@ -27,8 +28,42 @@ class GAController(BaseController):
         return render('summary.html')
 
 
+class AnalyticsPostThread(threading.Thread):
+    """Threaded Url POST"""
+    def __init__(self, queue):
+        threading.Thread.__init__(self)
+        self.queue = queue
+
+    def run(self):
+        while True:
+            # grabs host from queue
+            data_dict = self.queue.get()
+
+            data = urllib.urlencode(data_dict)
+            log.debug("Sending API event to Google Analytics: " + data)
+            # send analytics
+            urllib2.urlopen(
+                "http://www.google-analytics.com/collect",
+                data,
+                # timeout in seconds
+                # https://docs.python.org/2/library/urllib2.html#urllib2.urlopen
+                10)
+
+            # signals to queue job is done
+            self.queue.task_done()
+
+
 class GAApiController(ApiController):
     # intercept API calls to record via google analytics
+    analytics_queue = Queue.Queue()
+
+    def __init__(self):
+        # spawn a pool of 5 threads, and pass them queue instance
+        for i in range(5):
+            t = AnalyticsPostThread(self.analytics_queue)
+            t.setDaemon(True)
+            t.start()
+
     def _post_analytics(
             self, user, request_obj_type, request_function, request_id):
         if config.get('googleanalytics.id'):
@@ -45,15 +80,7 @@ class GAApiController(ApiController):
                 "ea": request_obj_type+request_function,
                 "el": request_id,
             }
-            data = urllib.urlencode(data_dict)
-            log.debug("Sending API event to Google Analytics: "+data)
-            # send analytics asynchronously
-            threading.Thread(target=urllib2.urlopen,
-                             args=(
-                                 "http://www.google-analytics.com/collect",
-                                 data,
-                                 # timeout in seconds https://docs.python.org/2/library/urllib2.html#urllib2.urlopen
-                                 10)).start()
+            self.analytics_queue.put(data_dict)
 
     def action(self, logic_function, ver=None):
         try:

@@ -18,9 +18,6 @@ Features
   resource downloads will be displayed as Events in the Google Analytics
   reporting interface.
 
-* Adds Google Analytics Event Tracking to some API calls so that usage of the
-  API can be reported on via Google Analytics.
-
 * Adds Google Analytics Event Tracking to group links on the home page,
   user profile links, editing and saving user profiles, etc.
 

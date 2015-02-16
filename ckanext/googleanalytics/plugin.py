@@ -10,11 +10,39 @@ import ckan.plugins as p
 import gasnippet
 from routes.mapper import SubMapper, Mapper as _Mapper
 
-log = logging.getLogger('ckanext.googleanalytics')
+import urllib2
 
+import threading
+import Queue
+
+log = logging.getLogger('ckanext.googleanalytics')
 
 class GoogleAnalyticsException(Exception):
     pass
+
+class AnalyticsPostThread(threading.Thread):
+    """Threaded Url POST"""
+    def __init__(self, queue):
+        threading.Thread.__init__(self)
+        self.queue = queue
+
+    def run(self):
+        while True:
+            # grabs host from queue
+            data_dict = self.queue.get()
+
+            data = urllib.urlencode(data_dict)
+            log.debug("Sending API event to Google Analytics: " + data)
+            # send analytics
+            urllib2.urlopen(
+                "http://www.google-analytics.com/collect",
+                data,
+                # timeout in seconds
+                # https://docs.python.org/2/library/urllib2.html#urllib2.urlopen
+                10)
+
+            # signals to queue job is done
+            self.queue.task_done()
 
 
 class GoogleAnalyticsPlugin(p.SingletonPlugin):
@@ -23,6 +51,8 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IConfigurer, inherit=True)
     p.implements(p.ITemplateHelpers)
+
+    analytics_queue = Queue.Queue()
 
     def configure(self, config):
         '''Load config settings for this extension from config file.
@@ -55,6 +85,13 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
 
         if not converters.asbool(config.get('ckan.legacy_templates', 'false')):
             p.toolkit.add_resource('fanstatic_library', 'ckanext-googleanalytics')
+
+            # spawn a pool of 5 threads, and pass them queue instance
+        for i in range(5):
+            t = AnalyticsPostThread(self.analytics_queue)
+            t.setDaemon(True)
+            t.start()
+
 
     def update_config(self, config):
         '''Change the CKAN (Pylons) environment configuration.

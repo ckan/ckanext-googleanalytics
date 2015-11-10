@@ -8,12 +8,41 @@ import pylons
 import ckan.lib.helpers as h
 import ckan.plugins as p
 import gasnippet
+from routes.mapper import SubMapper, Mapper as _Mapper
+
+import urllib2
+
+import threading
+import Queue
 
 log = logging.getLogger('ckanext.googleanalytics')
 
-
 class GoogleAnalyticsException(Exception):
     pass
+
+class AnalyticsPostThread(threading.Thread):
+    """Threaded Url POST"""
+    def __init__(self, queue):
+        threading.Thread.__init__(self)
+        self.queue = queue
+
+    def run(self):
+        while True:
+            # grabs host from queue
+            data_dict = self.queue.get()
+
+            data = urllib.urlencode(data_dict)
+            log.debug("Sending API event to Google Analytics: " + data)
+            # send analytics
+            urllib2.urlopen(
+                "http://www.google-analytics.com/collect",
+                data,
+                # timeout in seconds
+                # https://docs.python.org/2/library/urllib2.html#urllib2.urlopen
+                10)
+
+            # signals to queue job is done
+            self.queue.task_done()
 
 
 class GoogleAnalyticsPlugin(p.SingletonPlugin):
@@ -22,6 +51,8 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IConfigurer, inherit=True)
     p.implements(p.ITemplateHelpers)
+
+    analytics_queue = Queue.Queue()
 
     def configure(self, config):
         '''Load config settings for this extension from config file.
@@ -55,6 +86,13 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         if not converters.asbool(config.get('ckan.legacy_templates', 'false')):
             p.toolkit.add_resource('fanstatic_library', 'ckanext-googleanalytics')
 
+            # spawn a pool of 5 threads, and pass them queue instance
+        for i in range(5):
+            t = AnalyticsPostThread(self.analytics_queue)
+            t.setDaemon(True)
+            t.start()
+
+
     def update_config(self, config):
         '''Change the CKAN (Pylons) environment configuration.
 
@@ -66,6 +104,58 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
             p.toolkit.add_public_directory(config, 'legacy_public')
         else:
             p.toolkit.add_template_directory(config, 'templates')
+
+    def before_map(self, map):
+        '''Add new routes that this extension's controllers handle.
+
+        See IRoutes.
+
+        '''
+        # Helpers to reduce code clutter
+        GET = dict(method=['GET'])
+        PUT = dict(method=['PUT'])
+        POST = dict(method=['POST'])
+        DELETE = dict(method=['DELETE'])
+        GET_POST = dict(method=['GET', 'POST'])
+        # intercept API calls that we want to capture analytics on
+        register_list = [
+            'package',
+            'dataset',
+            'resource',
+            'tag',
+            'group',
+            'related',
+            'revision',
+            'licenses',
+            'rating',
+            'user',
+            'activity'
+        ]
+        register_list_str = '|'.join(register_list)
+        # /api ver 3 or none
+        with SubMapper(map, controller='ckanext.googleanalytics.controller:GAApiController', path_prefix='/api{ver:/3|}',
+                    ver='/3') as m:
+            m.connect('/action/{logic_function}', action='action',
+                      conditions=GET_POST)
+
+        # /api ver 1, 2, 3 or none
+        with SubMapper(map, controller='ckanext.googleanalytics.controller:GAApiController', path_prefix='/api{ver:/1|/2|/3|}',
+                       ver='/1') as m:
+            m.connect('/search/{register}', action='search')
+
+        # /api/rest ver 1, 2 or none
+        with SubMapper(map, controller='ckanext.googleanalytics.controller:GAApiController', path_prefix='/api{ver:/1|/2|}',
+                       ver='/1', requirements=dict(register=register_list_str)
+                       ) as m:
+
+            m.connect('/rest/{register}', action='list', conditions=GET)
+            m.connect('/rest/{register}', action='create', conditions=POST)
+            m.connect('/rest/{register}/{id}', action='show', conditions=GET)
+            m.connect('/rest/{register}/{id}', action='update', conditions=PUT)
+            m.connect('/rest/{register}/{id}', action='update', conditions=POST)
+            m.connect('/rest/{register}/{id}', action='delete', conditions=DELETE)
+
+        return map
 
     def after_map(self, map):
         '''Add new routes that this extension's controllers handle.

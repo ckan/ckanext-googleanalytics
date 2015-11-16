@@ -15,7 +15,7 @@ from webob.multidict import UnicodeMultiDict
 from paste.util.multidict import MultiDict
 
 from ckan.controllers.api import ApiController
-from ckan.controolers.package import PackageController
+from ckan.controllers.package import PackageController
 
 log = logging.getLogger('ckanext.googleanalytics')
 

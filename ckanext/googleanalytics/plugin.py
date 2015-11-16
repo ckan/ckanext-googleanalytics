@@ -155,6 +155,12 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
             m.connect('/rest/{register}/{id}', action='update', conditions=POST)
             m.connect('/rest/{register}/{id}', action='delete', conditions=DELETE)
 
+        with SubMapper(map, controller='ckanext.googleanalytics.controller:GAResourceController') as m:
+            m.connect('/dataset/{id}/resource/{resource_id}/download',
+                    action='resource_download')
+            m.connect('/dataset/{id}/resource/{resource_id}/download/{filename}',
+                    action='resource_download')
+
         return map
 
     def after_map(self, map):

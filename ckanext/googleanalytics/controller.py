@@ -116,6 +116,8 @@ class GAApiController(ApiController):
             pass
         self._post_analytics(c.user, register, "search", id)
 
+        return ApiController.search(self, ver, register)
+
 
 class GAResourceController(PackageController):
     # intercept API calls to record via google analytics

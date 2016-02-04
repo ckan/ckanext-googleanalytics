@@ -3,7 +3,7 @@ from sqlalchemy.sql import select, text
 from sqlalchemy import func
 
 import ckan.model as model
-from ckan.model.authz import PSEUDO_USER__VISITOR
+# from ckan.model.authz import PSEUDO_USER__VISITOR
 from ckan.lib.base import *
 
 cached_tables = {}
@@ -76,7 +76,11 @@ def get_resource_visits_for_url(url):
         AND resource.url = :url"""), url=url).fetchone()
     return count and count[0] or ""
 
+""" get_top_packages is broken, and needs to be rewritten to work with
+CKAN 2.*. This is because ckan.authz has been removed in CKAN 2.*
 
+See commit ffa86c010d5d25fa1881c6b915e48f3b44657612
+"""
 def get_top_packages(limit=20):
     items = []
     authorizer = Authorizer()

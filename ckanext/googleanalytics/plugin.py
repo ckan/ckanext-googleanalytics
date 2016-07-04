@@ -66,6 +66,8 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         self.googleanalytics_id = config['googleanalytics.id']
         self.googleanalytics_domain = config.get(
                 'googleanalytics.domain', 'auto')
+        self.googleanalytics_fields = config.get(
+            'googleanalytics.fields', '{}')
         self.googleanalytics_javascript_url = h.url_for_static(
                 '/scripts/ckanext-googleanalytics.js')
 
@@ -270,6 +272,7 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
 
         '''
         data = {'googleanalytics_id': self.googleanalytics_id,
-                'googleanalytics_domain': self.googleanalytics_domain}
+                'googleanalytics_domain': self.googleanalytics_domain,
+                'googleanalytics_fields': self.googleanalytics_fields}
         return p.toolkit.render_snippet(
             'googleanalytics/snippets/googleanalytics_header.html', data)

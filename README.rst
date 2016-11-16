@@ -186,6 +186,18 @@ giving permission in the browser::
     $ paster getauthtoken --config=../ckan/development.ini
 
 
+Custom Dimensions
+-----------------
+
+Custom GA dimensions can be configured as below (value is a name of Package object property)::
+    googleanalytics.custom_dimension.{dimension} = {value}
+
+Examples::
+    ; set value of package_id
+    googleanalytics.custom_dimension.dimension1 = id
+    ; set value of Package's description
+    googleanalytics.custom_dimension.dimension4 = notes
+
 
 Testing
 -------

@@ -16,6 +16,10 @@ from paste.util.multidict import MultiDict
 
 from ckan.controllers.api import ApiController
 from ckan.controllers.package import PackageController
+from ckan.common import g
+if 'cloudstorage' in g.plugins:
+    is_using_cloudstorage = True
+    from ckanext.cloudstorage.controller import StorageController
 
 log = logging.getLogger('ckanext.googleanalytics')
 
@@ -148,5 +152,13 @@ class GAResourceController(PackageController):
 
     def resource_download(self, id, resource_id, filename=None):
         self._post_analytics(c.user, "Resource", "Download", resource_id, id)
-        return PackageController.resource_download(self, id, resource_id,
-                                                   filename)
+
+        if is_using_cloudstorage:
+            use_controller = StorageController
+            use_class = StorageController()
+        else:
+            use_controller = PackageController
+            use_class = PackageController()
+
+        return use_controller.resource_download(use_class,id, resource_id,
+                                               filename)

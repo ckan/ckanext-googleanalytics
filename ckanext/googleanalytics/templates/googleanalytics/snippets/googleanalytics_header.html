@@ -6,9 +6,5 @@
 
   ga('create', '{{googleanalytics_id}}', '{{googleanalytics_domain}}');
   ga('set', 'anonymizeIp', true);
-
-  {% for dimension in h.get_ga_custom_dimensions((c.pkg or c.pkg_dict).id or '') -%}
-    ga('set', '{{ dimension[0] }}', '{{ dimension[1] }}');
-  {% endfor -%}
   ga('send', 'pageview');
 </script>

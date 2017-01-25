@@ -9,9 +9,6 @@ import ckan.lib.helpers as h
 import ckan.plugins as p
 import gasnippet
 from routes.mapper import SubMapper, Mapper as _Mapper
-from operator import attrgetter
-from ckan.common import c
-import ckan.model as model
 
 import urllib2
 
@@ -107,17 +104,6 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
             p.toolkit.add_public_directory(config, 'legacy_public')
         else:
             p.toolkit.add_template_directory(config, 'templates')
-
-        custom_dimension_prefix = 'googleanalytics.custom_dimension'
-        self.ga_dimensions = map(
-          lambda i: (i[0][len(custom_dimension_prefix) + 1:], i[1]),
-          filter(
-            lambda x: x[0].startswith(custom_dimension_prefix),
-            config.items()
-          )
-        )
-
-
 
     def before_map(self, map):
         '''Add new routes that this extension's controllers handle.
@@ -273,29 +259,7 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         See ITemplateHelpers.
 
         '''
-        return {
-            'googleanalytics_header': self.googleanalytics_header,
-            'get_ga_custom_dimensions': self.get_ga_custom_dimensions,
-        }
-
-    def get_ga_custom_dimensions(self, pkg_id):
-        dimensions = []
-        if len(self.ga_dimensions):
-            getter = attrgetter(*map(lambda d: d[1], self.ga_dimensions))
-            package = model.Package.get(pkg_id)
-            if package is None:
-                return dimensions
-            try:
-                data = getter(package)
-            except Exception as e:
-                log.debug('Cannot obtain ga dimensions from package: {0}'.format(e))
-                return dimensions
-
-            if not isinstance(data, tuple):
-                data = (data, )
-            dimensions = zip(map(lambda d: d[0], self.ga_dimensions), data)
-
-        return dimensions
+        return {'googleanalytics_header': self.googleanalytics_header}
 
     def googleanalytics_header(self):
         '''Render the googleanalytics_header snippet for CKAN 2.0 templates.

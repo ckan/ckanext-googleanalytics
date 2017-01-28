@@ -87,6 +87,7 @@ Installation
       googleanalytics_resource_prefix = /downloads/
       googleanalytics.domain = auto
       googleanalytics.track_events = false
+      googleanalytics.fields = {}
 
    ``resource_prefix`` is an arbitrary identifier so that we can query
    for downloads in Google Analytics.  It can theoretically be any
@@ -106,6 +107,8 @@ Installation
    enabled. *CKAN 1.x only.* *Note that event tracking for resource downloads
    is always enabled,* ``track_events`` *enables event tracking for other
    pages as well.*
+
+   ``fields`` allows you to specify various options when creating the tracker. See `Google's documentation <https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference>`.
 
 Setting Up Statistics Retrieval from Google Analytics
 -----------------------------------------------------

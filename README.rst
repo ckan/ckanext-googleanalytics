@@ -110,6 +110,15 @@ Installation
 
    ``fields`` allows you to specify various options when creating the tracker. See `Google's documentation <https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference>`.
 
+Domain Linking
+--------------
+
+This plugin supports cross-domain tracking using Googles' site linking feature.
+
+To use this, set the ``googleanalytics.linked_domains`` configuration option to a (comma seperated) list of domains to report for.
+
+See `Googles' documentation<https://support.google.com/analytics/answer/1034342?hl=en>`_ for more information
+
 Setting Up Statistics Retrieval from Google Analytics
 -----------------------------------------------------
 

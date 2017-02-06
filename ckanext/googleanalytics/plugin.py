@@ -67,6 +67,13 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
                 'googleanalytics.domain', 'auto')
         self.googleanalytics_fields = ast.literal_eval(config.get(
             'googleanalytics.fields', '{}'))
+
+        self.googleanalytics_linked_domains = [x.strip() for x in config.get(
+            'googleanalytics.linked_domains', ''
+        ).split(',')]
+        if self.googleanalytics_linked_domains:
+            self.googleanalytics_fields['allowLinker'] = True
+
         self.googleanalytics_javascript_url = h.url_for_static(
                 '/scripts/ckanext-googleanalytics.js')
 
@@ -194,8 +201,11 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         templates in this extension, see ITemplateHelpers.
 
         '''
-        data = {'googleanalytics_id': self.googleanalytics_id,
-                'googleanalytics_domain': self.googleanalytics_domain,
-                'googleanalytics_fields': str(self.googleanalytics_fields)}
+        data = {
+            'googleanalytics_id': self.googleanalytics_id,
+            'googleanalytics_domain': self.googleanalytics_domain,
+            'googleanalytics_fields': str(self.googleanalytics_fields),
+            'googleanalytics_linked_domains': self.googleanalytics_linked_domains
+        }
         return p.toolkit.render_snippet(
             'googleanalytics/snippets/googleanalytics_header.html', data)

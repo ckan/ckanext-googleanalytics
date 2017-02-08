@@ -51,6 +51,7 @@ Installation
     ::
 
     $ pip install -e  git+https://github.com/ckan/ckanext-googleanalytics.git#egg=ckanext-googleanalytics
+    $ pip install -r ckanext-googleanalytics/requirements.txt
 
 2. Edit your development.ini (or similar) to provide these necessary parameters:
 
@@ -122,8 +123,6 @@ See `Googles' documentation<https://support.google.com/analytics/answer/1034342?
 Setting Up Statistics Retrieval from Google Analytics
 -----------------------------------------------------
 
-*CKAN 1.x only*
-
 1. Run the following command from ``src/ckanext-googleanalytics`` to
    set up the required database tables (of course, altering the
    ``--config`` option to point to your site config file)::
@@ -146,10 +145,11 @@ Setting Up Statistics Retrieval from Google Analytics
 6. Import Google stats by running the following command from
    ``src/ckanext-googleanalytics``::
 
-       paster loadanalytics token.dat --config=../ckan/development.ini
+       paster loadanalytics credentials.json --config=../ckan/development.ini
 
-   (Of course, pointing config at your specific site config and token.dat at the
-   oauth file generated from the authorization step)
+   (Of course, pointing config at your specific site config and credentials.json at the
+   key file obtained from the authorization step)
+   Ignore warning `ImportError: file_cache is unavailable when using oauth2client >= 4.0.0`
 
 7. Look at some stats within CKAN
 
@@ -168,35 +168,19 @@ Setting Up Statistics Retrieval from Google Analytics
 Authorization
 --------------
 
-*CKAN 1.x only*
-
-Before ckanext-googleanalytics can retrieve statistics from Google Analytics, you need to set up the OAUTH details which you can do by following the `instructions <https://developers.google.com/analytics/resources/tutorials/hello-analytics-api>`_ the outcome of which will be a file called credentials.json which should look like credentials.json.template with the relevant fields completed. These steps are below for convenience:
+Before ckanext-googleanalytics can retrieve statistics from Google Analytics, you need to set up the OAUTH details which you can do by following the `instructions <https://developers.google.com/analytics/devguides/reporting/core/v3/quickstart/service-py>`_ the outcome of which will be a file with authentication key. These steps are below for convenience:
 
 1. Visit the `Google APIs Console <https://code.google.com/apis/console>`_
 
 2. Sign-in and create a project or use an existing project.
 
-3. In the `Services pane <https://code.google.com/apis/console#:services>`_ , activate Analytics API for your project. If prompted, read and accept the terms of service.
+3. In the `Service accounts pane <https://console.developers.google.com/iam-admin/serviceaccounts>`_ choose your project and create new account. During creation check "Furnish a new private key" -> JSON type. Write down "Service account ID"(looks like email) - it will be used later.
 
-4. Go to the `API Access pane <https://code.google.com/apis/console/#:access>`_
+4. Save downloaded file - it will be used by `loadanalytics` command(referenced as <credentials.json>)
 
-5. Click Create an OAuth 2.0 client ID....
+5. Go to `GoogleAnalytics console <https://analytics.google.com/analytics/web/#management>`_ and chose ADMIN tab.
 
-6. Fill out the Branding Information fields and click Next.
-
-7. In Client ID Settings, set Application type to Installed application.
-
-8. Click Create client ID
-
-9. The details you need below are Client ID, Client secret, and  Redirect URIs
-
-
-Once you have set up your credentials.json file you can generate an oauth token file by using the
-following command, which will store your oauth token in a file called token.dat once you have finished
-giving permission in the browser::
-
-    $ paster getauthtoken --config=../ckan/development.ini
-
+6. Find "User management" button in corresponding column. Add service account using Service account ID(email) generated in 3rd step and grant "Read" role to it.
 
 
 Testing

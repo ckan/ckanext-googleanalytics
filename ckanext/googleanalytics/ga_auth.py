@@ -1,31 +1,24 @@
-import os
 import httplib2
 from apiclient.discovery import build
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.file import Storage
-from oauth2client.tools import run
+from oauth2client.service_account import ServiceAccountCredentials
 
 from pylons import config
 
 
-def _prepare_credentials(token_filename, credentials_filename):
+def _prepare_credentials(credentials_filename):
     """
     Either returns the user's oauth credentials or uses the credentials
     file to generate a token (by forcing the user to login in the browser)
     """
-    storage = Storage(token_filename)
-    credentials = storage.get()
-
-    if credentials is None or credentials.invalid:
-        flow = flow_from_clientsecrets(credentials_filename,
-                scope='https://www.googleapis.com/auth/analytics.readonly',
-                message="Can't find the credentials file")
-        credentials = run(flow, storage)
-
+    scope = ['https://www.googleapis.com/auth/analytics.readonly']
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        credentials_filename,
+        scopes=scope
+    )
     return credentials
 
 
-def init_service(token_file, credentials_file):
+def init_service(credentials_file):
     """
     Given a file containing the user's oauth token (and another with
     credentials in case we need to generate the token) will return a
@@ -33,7 +26,7 @@ def init_service(token_file, credentials_file):
     """
     http = httplib2.Http()
 
-    credentials = _prepare_credentials(token_file, credentials_file)
+    credentials = _prepare_credentials(credentials_file)
     http = credentials.authorize(http)  # authorize the http object
 
     return build('analytics', 'v3', http=http)
@@ -58,7 +51,9 @@ def get_profile_id(service):
         if acc.get('name') == accountName:
             accountId = acc.get('id')
 
-    webproperties = service.management().webproperties().list(accountId=accountId).execute()
+    # TODO: check, whether next line is doing something useful.
+    webproperties = service.management().webproperties().list(
+        accountId=accountId).execute()
 
     profiles = service.management().profiles().list(
         accountId=accountId, webPropertyId=webPropertyId).execute()

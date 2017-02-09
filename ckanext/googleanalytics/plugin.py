@@ -72,7 +72,7 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
             'googleanalytics.linked_domains', ''
         ).split(',')]
         if self.googleanalytics_linked_domains:
-            self.googleanalytics_fields['allowLinker'] = True
+            self.googleanalytics_fields['allowLinker'] = 'true'
 
         self.googleanalytics_javascript_url = h.url_for_static(
                 '/scripts/ckanext-googleanalytics.js')

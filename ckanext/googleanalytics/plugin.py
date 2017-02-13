@@ -5,20 +5,55 @@ import commands
 import dbutil
 import paste.deploy.converters as converters
 import pylons
+from ckan.lib.base import c
 import ckan.lib.helpers as h
 import ckan.plugins as p
 import gasnippet
 from routes.mapper import SubMapper, Mapper as _Mapper
+from pylons import config
 
 import urllib2
+import importlib
+import hashlib
 
 import threading
 import Queue
 
 log = logging.getLogger('ckanext.googleanalytics')
 
+
+def _post_analytics(
+        user, request_obj_type, request_function, request_id):
+    if config.get('googleanalytics.id'):
+        data_dict = {
+            "v": 1,
+            "tid": config.get('googleanalytics.id'),
+            "cid": hashlib.md5(c.user).hexdigest(),
+            # customer id should be obfuscated
+            "t": "event",
+            "dh": c.environ['HTTP_HOST'],
+            "dp": c.environ['PATH_INFO'],
+            "dr": c.environ.get('HTTP_REFERER', ''),
+            "ec": "CKAN Resource Download Request",
+            "ea": request_obj_type + request_function,
+            "el": request_id,
+        }
+        GoogleAnalyticsPlugin.analytics_queue.put(data_dict)
+
+
+def post_analytics_decorator(func):
+
+    def func_wrapper(cls, id, resource_id, filename):
+        _post_analytics(c.user, "Resource", "Download", resource_id)
+
+        return func(cls, id, resource_id, filename)
+
+    return func_wrapper
+
+
 class GoogleAnalyticsException(Exception):
     pass
+
 
 class AnalyticsPostThread(threading.Thread):
     """Threaded Url POST"""
@@ -163,12 +198,6 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
             m.connect('/rest/{register}/{id}', action='update', conditions=POST)
             m.connect('/rest/{register}/{id}', action='delete', conditions=DELETE)
 
-        with SubMapper(map, controller='ckanext.googleanalytics.controller:GAResourceController') as m:
-            m.connect('/dataset/{id}/resource/{resource_id}/download',
-                    action='resource_download')
-            m.connect('/dataset/{id}/resource/{resource_id}/download/{filename}',
-                    action='resource_download')
-
         return map
 
     def after_map(self, map):
@@ -177,6 +206,7 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         See IRoutes.
 
         '''
+        self.modify_resource_download_route(map)
         map.redirect("/analytics/package/top", "/analytics/dataset/top")
         map.connect(
             'analytics', '/analytics/dataset/top',
@@ -209,3 +239,18 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         }
         return p.toolkit.render_snippet(
             'googleanalytics/snippets/googleanalytics_header.html', data)
+
+    def modify_resource_download_route(self, map):
+        '''Modifies resource_download method in related controller
+        to attach GA tracking code.
+        '''
+
+        if '_routenames' in map.__dict__:
+            if 'resource_download' in map.__dict__['_routenames']:
+                route_data = map.__dict__['_routenames']['resource_download'].__dict__
+                route_controller = route_data['defaults']['controller'].split(
+                    ':')
+                module = importlib.import_module(route_controller[0])
+                controller_class = getattr(module, route_controller[1])
+                controller_class.resource_download = post_analytics_decorator(
+                    controller_class.resource_download)

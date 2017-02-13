@@ -18,32 +18,6 @@ RESOURCE_URL_REGEX = re.compile('/dataset/[a-z0-9-_]+/resource/([a-z0-9-_]+)')
 DATASET_EDIT_REGEX = re.compile('/dataset/edit/([a-z0-9-_]+)')
 
 
-class GetAuthToken(CkanCommand):
-    """ Get's the Google auth token
-
-    Usage: paster getauthtoken <credentials_file>
-
-    Where <credentials_file> is the file name containing the details
-    for the service (obtained from https://code.google.com/apis/console).
-    By default this is set to credentials.json
-    """
-    summary = __doc__.split('\n')[0]
-    usage = __doc__
-    max_args = 1
-    min_args = 0
-
-    def command(self):
-        """
-        In this case we don't want a valid service, but rather just to
-        force the user through the auth flow. We allow this to complete to
-        act as a form of verification instead of just getting the token and
-        assuming it is correct.
-        """
-        from ga_auth import init_service
-        init_service('token.dat',
-                      self.args[0] if self.args else 'credentials.json')
-
-
 class InitDB(CkanCommand):
     """Initialise the local stats database tables
     """
@@ -65,8 +39,8 @@ class LoadAnalytics(CkanCommand):
     in a local database
 
     Options:
-        <token_file> internal [date] use ckan internal tracking tables
-                        token_file specifies the OAUTH token file
+        <credentials_file> internal [date] use ckan internal tracking tables
+                        credentials_file specifies the OAUTH credentials file
                         date specifies start date for retrieving
                         analytics data YYYY-MM-DD format
     """
@@ -252,11 +226,9 @@ class LoadAnalytics(CkanCommand):
             raise Exception('Cannot find the token file %s' % self.args[0])
 
         try:
-            self.service = init_service(self.args[0], None)
-        except TypeError:
-            print ('Have you correctly run the getauthtoken task and '
-                   'specified the correct file here')
-            raise Exception('Unable to create a service')
+            self.service = init_service(self.args[0])
+        except TypeError as e:
+            raise Exception('Unable to create a service: {0}'.format(e))
         self.profile_id = get_profile_id(self.service)
 
         if len(self.args) > 1:

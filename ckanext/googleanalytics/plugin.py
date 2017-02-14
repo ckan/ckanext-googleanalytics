@@ -11,6 +11,7 @@ import ckan.plugins as p
 import gasnippet
 from routes.mapper import SubMapper, Mapper as _Mapper
 from pylons import config
+from ckan.controllers.package import PackageController
 
 import urllib2
 import importlib
@@ -254,3 +255,7 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
                 controller_class = getattr(module, route_controller[1])
                 controller_class.resource_download = post_analytics_decorator(
                     controller_class.resource_download)
+            else:
+                # If no custom uploader applied, use the default one
+                PackageController.resource_download = post_analytics_decorator(
+                    PackageController.resource_download)

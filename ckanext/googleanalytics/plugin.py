@@ -104,9 +104,13 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         self.googleanalytics_fields = ast.literal_eval(config.get(
             'googleanalytics.fields', '{}'))
 
-        self.googleanalytics_linked_domains = [x.strip() for x in config.get(
+        googleanalytics_linked_domains = config.get(
             'googleanalytics.linked_domains', ''
-        ).split(',')]
+        )
+        self.googleanalytics_linked_domains = [
+            x.strip() for x in googleanalytics_linked_domains.split(',') if x
+        ]
+
         if self.googleanalytics_linked_domains:
             self.googleanalytics_fields['allowLinker'] = 'true'
 

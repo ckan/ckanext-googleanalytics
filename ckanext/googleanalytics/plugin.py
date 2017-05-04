@@ -24,7 +24,8 @@ log = logging.getLogger('ckanext.googleanalytics')
 
 
 def _post_analytics(
-        user, request_obj_type, request_function, request_id):
+        user, event_type, request_obj_type, request_function, request_id):
+
     if config.get('googleanalytics.id'):
         data_dict = {
             "v": 1,
@@ -35,7 +36,7 @@ def _post_analytics(
             "dh": c.environ['HTTP_HOST'],
             "dp": c.environ['PATH_INFO'],
             "dr": c.environ.get('HTTP_REFERER', ''),
-            "ec": "CKAN Resource Download Request",
+            "ec": event_type,
             "ea": request_obj_type + request_function,
             "el": request_id,
         }
@@ -45,7 +46,13 @@ def _post_analytics(
 def post_analytics_decorator(func):
 
     def func_wrapper(cls, id, resource_id, filename):
-        _post_analytics(c.user, "Resource", "Download", resource_id)
+        _post_analytics(
+            c.user,
+            "CKAN Resource Download Request",
+            "Resource",
+            "Download",
+            resource_id
+        )
 
         return func(cls, id, resource_id, filename)
 

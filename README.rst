@@ -24,7 +24,19 @@ Features
 * Add Google Analytics Event Tracking function that can be used in any exstension
   to create your custom events tracking.
 
-  ``ckanext.googleanalytics.plugin._post_analytics``
+  ``ckanext.googleanalytics.plugin.ga_event_tracking``
+
+  function arguments:
+
+    - `user`: The user name.
+
+    - `event_type`: Custom event type. For example "changed event".
+
+    - `request_obj_type`: Custom request object type. For example "Resourse".
+
+    - `request_function`: Custom request function. For example "Download".
+
+    - `request_id`: Request id, can be dataset ID or resource ID for example.
 
 * Adds Google Analytics Event Tracking to group links on the home page,
   user profile links, editing and saving user profiles, etc.

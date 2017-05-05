@@ -23,14 +23,14 @@ import Queue
 log = logging.getLogger('ckanext.googleanalytics')
 
 
-def _post_analytics(
+def ga_event_tracking(
         user, event_type, request_obj_type, request_function, request_id):
-
+    """The function allow to create custom event tracking."""
     if config.get('googleanalytics.id'):
         data_dict = {
             "v": 1,
             "tid": config.get('googleanalytics.id'),
-            "cid": hashlib.md5(c.user).hexdigest(),
+            "cid": hashlib.md5(user).hexdigest(),
             # customer id should be obfuscated
             "t": "event",
             "dh": c.environ['HTTP_HOST'],
@@ -46,7 +46,7 @@ def _post_analytics(
 def post_analytics_decorator(func):
 
     def func_wrapper(cls, id, resource_id, filename):
-        _post_analytics(
+        ga_event_tracking(
             c.user,
             "CKAN Resource Download Request",
             "Resource",

@@ -2,16 +2,11 @@ import logging
 from ckan.lib.base import BaseController, c, render, request
 import dbutil
 
-import urllib
-import urllib2
-
-import logging
 import ckan.logic as logic
 import hashlib
 import plugin
 from pylons import config
 
-from webob.multidict import UnicodeMultiDict
 from paste.util.multidict import MultiDict
 
 from ckan.controllers.api import ApiController

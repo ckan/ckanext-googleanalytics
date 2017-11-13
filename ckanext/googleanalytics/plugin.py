@@ -2,14 +2,11 @@ import ast
 import logging
 import urllib
 import commands
-import dbutil
 import paste.deploy.converters as converters
-import pylons
 from ckan.lib.base import c
 import ckan.lib.helpers as h
 import ckan.plugins as p
-import gasnippet
-from routes.mapper import SubMapper, Mapper as _Mapper
+from routes.mapper import SubMapper
 from pylons import config
 from ckan.controllers.package import PackageController
 

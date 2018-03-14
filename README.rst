@@ -119,7 +119,7 @@ Installation
 
    If ``enable_user_id`` is set to ``true``, then logged in users will be tracked into the Google Analytics' dashboard.
    This way metrics can be tracked for every logged in user. You can read more
-   about this feature and its benefits `here<https://support.google.com/analytics/answer/3123662>`_.
+   about this feature and its benefits `here <https://support.google.com/analytics/answer/3123662>`_.
 
 Domain Linking
 --------------

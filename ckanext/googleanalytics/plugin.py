@@ -137,6 +137,8 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
             config.get('googleanalytics.show_downloads', True))
         self.track_events = converters.asbool(
             config.get('googleanalytics.track_events', False))
+        self.enable_user_id = converters.asbool(
+            config.get('googleanalytics.enable_user_id', False))
 
         if not converters.asbool(config.get('ckan.legacy_templates', 'false')):
             p.toolkit.add_resource('fanstatic_library', 'ckanext-googleanalytics')
@@ -243,6 +245,10 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
         templates in this extension, see ITemplateHelpers.
 
         '''
+
+        if self.enable_user_id and c.user:
+            self.googleanalytics_fields['userId'] = str(c.userobj.id)
+
         data = {
             'googleanalytics_id': self.googleanalytics_id,
             'googleanalytics_domain': self.googleanalytics_domain,

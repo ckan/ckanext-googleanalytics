@@ -79,7 +79,6 @@ def get_resource_visits_for_url(url):
 
 def get_top_packages(limit=20):
     items = []
-    authorizer = Authorizer()
     # caveat emptor: the query below will not filter out private
     # or deleted datasets (TODO)
     q = model.Session.query(model.Package)

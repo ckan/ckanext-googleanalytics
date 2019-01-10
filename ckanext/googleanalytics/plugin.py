@@ -2,14 +2,11 @@ import ast
 import logging
 import urllib
 import commands
-import dbutil
 import paste.deploy.converters as converters
-import pylons
 from ckan.lib.base import c
 import ckan.lib.helpers as h
 import ckan.plugins as p
-import gasnippet
-from routes.mapper import SubMapper, Mapper as _Mapper
+from routes.mapper import SubMapper
 from pylons import config
 from ckan.controllers.package import PackageController
 
@@ -43,9 +40,9 @@ def _post_analytics(
         GoogleAnalyticsPlugin.analytics_queue.put(data_dict)
 
 
-def post_analytics_decorator(func):
+def wrap_resource_download(func):
 
-    def func_wrapper(cls, id, resource_id, filename):
+    def func_wrapper(cls, id, resource_id, filename=None):
         _post_analytics(
             c.user,
             "CKAN Resource Download Request",
@@ -54,7 +51,7 @@ def post_analytics_decorator(func):
             resource_id
         )
 
-        return func(cls, id, resource_id, filename)
+        return func(cls, id, resource_id, filename=None)
 
     return func_wrapper
 
@@ -264,9 +261,9 @@ class GoogleAnalyticsPlugin(p.SingletonPlugin):
                     ':')
                 module = importlib.import_module(route_controller[0])
                 controller_class = getattr(module, route_controller[1])
-                controller_class.resource_download = post_analytics_decorator(
+                controller_class.resource_download = wrap_resource_download(
                     controller_class.resource_download)
             else:
                 # If no custom uploader applied, use the default one
-                PackageController.resource_download = post_analytics_decorator(
+                PackageController.resource_download = wrap_resource_download(
                     PackageController.resource_download)

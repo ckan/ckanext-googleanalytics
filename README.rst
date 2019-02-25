@@ -94,6 +94,7 @@ Installation
       googleanalytics.domain = auto
       googleanalytics.track_events = false
       googleanalytics.fields = {}
+      googleanalytics.enable_user_id = false
 
    ``resource_prefix`` is an arbitrary identifier so that we can query
    for downloads in Google Analytics.  It can theoretically be any
@@ -115,6 +116,10 @@ Installation
    pages as well.*
 
    ``fields`` allows you to specify various options when creating the tracker. See `Google's documentation <https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference>`.
+
+   If ``enable_user_id`` is set to ``true``, then logged in users will be tracked into the Google Analytics' dashboard.
+   This way metrics can be tracked for every logged in user. You can read more
+   about this feature and its benefits `here <https://support.google.com/analytics/answer/3123662>`_.
 
 Domain Linking
 --------------

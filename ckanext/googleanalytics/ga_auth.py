@@ -51,14 +51,14 @@ def get_profile_id(service):
         if acc.get('name') == accountName:
             accountId = acc.get('id')
 
-    # TODO: check, whether next line is doing something useful.
-    webproperties = service.management().webproperties().list(
-        accountId=accountId).execute()
+            # TODO: check, whether next line is doing something useful.
+            webproperties = service.management().webproperties().list(
+                accountId=accountId).execute()
 
-    profiles = service.management().profiles().list(
-        accountId=accountId, webPropertyId=webPropertyId).execute()
+            profiles = service.management().profiles().list(
+                accountId=accountId, webPropertyId=webPropertyId).execute()
 
-    if profiles.get('items'):
-        return profiles.get('items')[0].get('id')
+            if profiles.get('items'):
+                return profiles.get('items')[0].get('id')
 
     return None

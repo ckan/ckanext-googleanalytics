@@ -10,10 +10,9 @@ def _prepare_credentials(credentials_filename):
     Either returns the user's oauth credentials or uses the credentials
     file to generate a token (by forcing the user to login in the browser)
     """
-    scope = ['https://www.googleapis.com/auth/analytics.readonly']
+    scope = ["https://www.googleapis.com/auth/analytics.readonly"]
     credentials = ServiceAccountCredentials.from_json_keyfile_name(
-        credentials_filename,
-        scopes=scope
+        credentials_filename, scopes=scope
     )
     return credentials
 
@@ -29,7 +28,7 @@ def init_service(credentials_file):
     credentials = _prepare_credentials(credentials_file)
     http = credentials.authorize(http)  # authorize the http object
 
-    return build('analytics', 'v3', http=http)
+    return build("analytics", "v3", http=http)
 
 
 def get_profile_id(service):
@@ -42,23 +41,31 @@ def get_profile_id(service):
     """
     accounts = service.management().accounts().list().execute()
 
-    if not accounts.get('items'):
+    if not accounts.get("items"):
         return None
 
-    accountName = config.get('googleanalytics.account')
-    webPropertyId = config.get('googleanalytics.id')
-    for acc in accounts.get('items'):
-        if acc.get('name') == accountName:
-            accountId = acc.get('id')
+    accountName = config.get("googleanalytics.account")
+    webPropertyId = config.get("googleanalytics.id")
+    for acc in accounts.get("items"):
+        if acc.get("name") == accountName:
+            accountId = acc.get("id")
 
             # TODO: check, whether next line is doing something useful.
-            webproperties = service.management().webproperties().list(
-                accountId=accountId).execute()
+            webproperties = (
+                service.management()
+                .webproperties()
+                .list(accountId=accountId)
+                .execute()
+            )
 
-            profiles = service.management().profiles().list(
-                accountId=accountId, webPropertyId=webPropertyId).execute()
+            profiles = (
+                service.management()
+                .profiles()
+                .list(accountId=accountId, webPropertyId=webPropertyId)
+                .execute()
+            )
 
-            if profiles.get('items'):
-                return profiles.get('items')[0].get('id')
+            if profiles.get("items"):
+                return profiles.get("items")[0].get("id")
 
     return None

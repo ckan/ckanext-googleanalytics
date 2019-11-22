@@ -1,13 +1,17 @@
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
 import ast
 import logging
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import ckanext.googleanalytics.commands as commands
 import paste.deploy.converters as converters
 import ckan.lib.helpers as h
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from ckan.exceptions import CkanVersionException
 import threading
 
@@ -37,10 +41,10 @@ class AnalyticsPostThread(threading.Thread):
             # grabs host from queue
             data_dict = self.queue.get()
 
-            data = urllib.urlencode(data_dict)
+            data = urllib.parse.urlencode(data_dict)
             log.debug("Sending API event to Google Analytics: " + data)
             # send analytics
-            urllib2.urlopen(
+            urllib.request.urlopen(
                 "http://www.google-analytics.com/collect",
                 data,
                 # timeout in seconds

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import os
 import re
 import logging
@@ -8,7 +10,7 @@ from pylons import config as pylonsconfig
 from ckan.lib.cli import CkanCommand
 import ckan.model as model
 
-import dbutil
+from . import dbutil
 
 log = logging.getLogger("ckanext.googleanalytics")
 PACKAGE_URL = "/dataset/"  # XXX get from routes...
@@ -78,7 +80,7 @@ class LoadAnalytics(CkanCommand):
         )
         engine.execute(sql)
 
-        for url, count in packages_data.iteritems():
+        for url, count in packages_data.items():
             # If it matches the resource then we should mark it as a resource.
             # For resources we don't currently find the package ID.
             if RESOURCE_URL_REGEX.match(url):
@@ -174,7 +176,7 @@ class LoadAnalytics(CkanCommand):
             time.sleep(0.25)
             start_date = stop_date
             log.info("%s received %s" % (len(packages_data), start_date))
-            print "%s received %s" % (len(packages_data), start_date)
+            print("%s received %s" % (len(packages_data), start_date))
 
     def get_ga_data_new(self, start_date=None, end_date=None):
         """Get raw data from Google Analtyics for packages and
@@ -234,7 +236,7 @@ class LoadAnalytics(CkanCommand):
 
     def parse_and_save(self):
         """Grab raw data from Google Analytics and save to the database"""
-        from ga_auth import init_service, get_profile_id
+        from .ga_auth import init_service, get_profile_id
 
         tokenfile = self.args[0]
         if not os.path.exists(tokenfile):
@@ -262,7 +264,7 @@ class LoadAnalytics(CkanCommand):
     def save_ga_data(self, packages_data):
         """Save tuples of packages_data to the database
         """
-        for identifier, visits in packages_data.items():
+        for identifier, visits in list(packages_data.items()):
             recently = visits.get("recent", 0)
             ever = visits.get("ever", 0)
             matches = RESOURCE_URL_REGEX.match(identifier)
@@ -314,7 +316,7 @@ class LoadAnalytics(CkanCommand):
         if not sort:
             sort = "-ga:uniquePageviews"
 
-        print "%s -> %s" % (from_date, to_date)
+        print("%s -> %s" % (from_date, to_date))
 
         results = (
             self.service.data()
@@ -349,7 +351,7 @@ class LoadAnalytics(CkanCommand):
         packages = {}
         queries = ["ga:pagePath=~%s" % PACKAGE_URL]
         dates = {"recent": recent_date, "ever": floor_date}
-        for date_name, date in dates.iteritems():
+        for date_name, date in dates.items():
             for query in queries:
                 results = self.ga_query(
                     query_filter=query,

@@ -25,7 +25,7 @@ def action(logic_function, ver=api.API_MAX_VERSION):
             if "query" in request_data:
                 id = request_data["query"]
             _post_analytics(g.user, "CKAN API Request", logic_function, "", id)
-    except Exception, e:
+    except Exception as e:
         log.debug(e)
         pass
 

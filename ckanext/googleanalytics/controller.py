@@ -1,10 +1,12 @@
+from __future__ import absolute_import
+from builtins import str
 import logging
 from ckan.lib.base import BaseController, c, render, request
-import dbutil
+from . import dbutil
 
 import ckan.logic as logic
 import hashlib
-import plugin
+from . import plugin
 from pylons import config
 
 from paste.util.multidict import MultiDict
@@ -56,7 +58,7 @@ class GAApiController(ApiController):
                 if "query" in request_data:
                     id = request_data["query"]
                 self._post_analytics(c.user, logic_function, "", id)
-        except Exception, e:
+        except Exception as e:
             log.debug(e)
             pass
         return ApiController.action(self, logic_function, ver)
@@ -107,11 +109,11 @@ class GAApiController(ApiController):
         id = None
         try:
             params = MultiDict(self._get_search_params(request.params))
-            if "q" in params.keys():
+            if "q" in list(params.keys()):
                 id = params["q"]
-            if "query" in params.keys():
+            if "query" in list(params.keys()):
                 id = params["query"]
-        except ValueError, e:
+        except ValueError as e:
             log.debug(str(e))
             pass
         self._post_analytics(c.user, register, "search", id)

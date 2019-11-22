@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-import Queue
+from future import standard_library
+standard_library.install_aliases()
+import queue
 
 import hashlib
 import importlib
@@ -15,7 +17,7 @@ from routes.mapper import SubMapper
 class GAMixinPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IRoutes)
 
-    analytics_queue = Queue.Queue()
+    analytics_queue = queue.Queue()
 
     def before_map(self, map):
         """Add new routes that this extension's controllers handle.

@@ -80,7 +80,7 @@ class LoadAnalytics(CkanCommand):
         )
         engine.execute(sql)
 
-        for url, count in packages_data.items():
+        for url, count in list(packages_data.items()):
             # If it matches the resource then we should mark it as a resource.
             # For resources we don't currently find the package ID.
             if RESOURCE_URL_REGEX.match(url):
@@ -351,7 +351,7 @@ class LoadAnalytics(CkanCommand):
         packages = {}
         queries = ["ga:pagePath=~%s" % PACKAGE_URL]
         dates = {"recent": recent_date, "ever": floor_date}
-        for date_name, date in dates.items():
+        for date_name, date in list(dates.items()):
             for query in queries:
                 results = self.ga_query(
                     query_filter=query,

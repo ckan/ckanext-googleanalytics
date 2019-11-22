@@ -27,5 +27,8 @@ setup(
         [paste.paster_command]
         loadanalytics = ckanext.googleanalytics.commands:LoadAnalytics
         initdb = ckanext.googleanalytics.commands:InitDB
+        [console_scripts]
+        ckanext-googleanalytics = ckanext.googleanalytics.cli:googleanalytics
+
 	""",
 )

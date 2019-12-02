@@ -21,7 +21,7 @@ Features
 * Adds Google Analytics Event Tracking to some API calls so that usage of the
   API can be reported on via Google Analytics.
 
-* Add Google Analytics Event Tracking function that can be used in any exstension
+* Add Google Analytics Event Tracking function that can be used in any extension
   to create your custom events tracking.
 
   ``ckanext.googleanalytics.plugin._post_analytics``

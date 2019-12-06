@@ -71,7 +71,6 @@ def _post_analytics(
 ):
 
     from ckanext.googleanalytics.plugin import GoogleAnalyticsPlugin
-
     if tk.config.get("googleanalytics.id"):
         data_dict = {
             "v": 1,

@@ -26,28 +26,6 @@ Features
 
   ``ckanext.googleanalytics.plugin._post_analytics``
 
-* Adds Google Analytics Event Tracking to group links on the home page,
-  user profile links, editing and saving user profiles, etc.
-
-  *Only if* ``googleanalytics.track_events = true`` *is in your CKAN ini file.*
-
-  *CKAN 1.x only*.
-
-* Puts download stats into dataset pages, e.g. "[downloaded 4 times]".
-
-  *CKAN 1.x only.*
-
-* Provides a ``/analytics/dataset/top`` page that shows the most popular
-  datasets and resources
-
-  *CKAN 1.x only*
-
-CKAN 1.x Support
-----------------
-
-To use ckanext-googleanalytics with CKAN 1.x, make sure you have
-``ckan.legacy_templates = true`` in your CKAN ini file.
-
 Installation
 ------------
 
@@ -81,13 +59,7 @@ Installation
    (If there are other plugins activated, add this to the list.  Each
    plugin should be separated with a space).
 
-4. If you are using this plugin with a version of CKAN < 2.0 then you should
-   also put the following in your ini file::
-
-       ckan.legacy_templates = true
-
-
-5. Finally, there are some optional configuration settings (shown here
+4. Finally, there are some optional configuration settings (shown here
    with their default settings)::
 
       googleanalytics_resource_prefix = /downloads/

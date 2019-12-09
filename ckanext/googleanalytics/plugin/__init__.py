@@ -1,20 +1,27 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
+
 from future import standard_library
 
 standard_library.install_aliases()
-from builtins import str
-from builtins import range
+
+import urllib.parse
 import ast
 import logging
-import ckanext.googleanalytics.commands as commands
-import paste.deploy.converters as converters
+import threading
+
+from builtins import str, range
+
+import requests
+
 import ckan.lib.helpers as h
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
-import  urllib.parse
+
 from ckan.exceptions import CkanVersionException
-import threading
-import requests
+
+import ckanext.googleanalytics.commands as commands
+
 
 log = logging.getLogger(__name__)
 
@@ -46,9 +53,7 @@ class AnalyticsPostThread(threading.Thread):
             log.debug("Sending API event to Google Analytics: " + data)
             # send analytics
             res = requests.post(
-                "http://www.google-analytics.com/collect",
-                data,
-                timeout=10,
+                "http://www.google-analytics.com/collect", data, timeout=10,
             )
             # signals to queue job is done
             self.queue.task_done()
@@ -101,22 +106,19 @@ class GoogleAnalyticsPlugin(GAMixinPlugin, p.SingletonPlugin):
             "googleanalytics_resource_prefix"
         ]
 
-        self.show_downloads = converters.asbool(
+        self.show_downloads = tk.asbool(
             config.get("googleanalytics.show_downloads", True)
         )
-        self.track_events = converters.asbool(
+        self.track_events = tk.asbool(
             config.get("googleanalytics.track_events", False)
         )
-        self.enable_user_id = converters.asbool(
+        self.enable_user_id = tk.asbool(
             config.get("googleanalytics.enable_user_id", False)
         )
 
-        if not converters.asbool(config.get("ckan.legacy_templates", "false")):
-            p.toolkit.add_resource(
-                "../fanstatic_library", "ckanext-googleanalytics"
-            )
+        p.toolkit.add_resource("../assets", "ckanext-googleanalytics")
 
-            # spawn a pool of 5 threads, and pass them queue instance
+        # spawn a pool of 5 threads, and pass them queue instance
         for i in range(5):
             t = AnalyticsPostThread(self.analytics_queue)
             t.setDaemon(True)
@@ -128,11 +130,7 @@ class GoogleAnalyticsPlugin(GAMixinPlugin, p.SingletonPlugin):
         See IConfigurer.
 
         """
-        if converters.asbool(config.get("ckan.legacy_templates", "false")):
-            p.toolkit.add_template_directory(config, "../legacy_templates")
-            p.toolkit.add_public_directory(config, "../legacy_public")
-        else:
-            p.toolkit.add_template_directory(config, "../templates")
+        p.toolkit.add_template_directory(config, "../templates")
 
     def get_helpers(self):
         """Return the CKAN 2.0 template helper functions this plugin provides.

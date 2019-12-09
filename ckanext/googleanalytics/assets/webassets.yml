@@ -1,0 +1,5 @@
+event_tracking:
+  filters: rjsmin
+  output: ckanext-googleanalytics/event_tracking.js
+  contents:
+    - googleanalytics_event_tracking.js

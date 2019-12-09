@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
-from flask import Blueprint
+
 import hashlib
+import logging
+
+from flask import Blueprint
+
+import ckan.logic as logic
+import ckan.plugins.toolkit as tk
 import ckan.views.api as api
 import ckan.views.resource as resource
-import ckan.logic as logic
-import logging
+
 from ckan.common import g
-import ckan.plugins.toolkit as tk
 
 log = logging.getLogger(__name__)
-
-ga = Blueprint(u"google_analytics", "google_analytics",)
+ga = Blueprint("google_analytics", "google_analytics")
 
 
 def action(logic_function, ver=api.API_MAX_VERSION):
@@ -23,7 +26,7 @@ def action(logic_function, ver=api.API_MAX_VERSION):
             if "q" in request_data:
                 id = request_data["q"]
             if "query" in request_data:
-                id = request_data["query"]
+                id = request_data[u"query"]
             _post_analytics(g.user, "CKAN API Request", logic_function, "", id)
     except Exception as e:
         log.debug(e)
@@ -33,15 +36,13 @@ def action(logic_function, ver=api.API_MAX_VERSION):
 
 
 ga.add_url_rule(
-    u"/api/action/<logic_function>",
-    methods=[u"GET", u"POST"],
-    view_func=action,
+    "/api/action/<logic_function>", methods=["GET", "POST"], view_func=action,
 )
 ga.add_url_rule(
     u"/<int(min=3, max={0}):ver>/action/<logic_function>".format(
         api.API_MAX_VERSION
     ),
-    methods=[u"GET", u"POST"],
+    methods=["GET", "POST"],
     view_func=action,
 )
 
@@ -58,10 +59,10 @@ def download(id, resource_id, filename=None, package_type="dataset"):
 
 
 ga.add_url_rule(
-    u"/dataset/<id>/resource/<resource_id>/download", view_func=download
+    "/dataset/<id>/resource/<resource_id>/download", view_func=download
 )
 ga.add_url_rule(
-    u"/dataset/<id>/resource/<resource_id>/download/<filename>",
+    "/dataset/<id>/resource/<resource_id>/download/<filename>",
     view_func=download,
 )
 
@@ -71,6 +72,7 @@ def _post_analytics(
 ):
 
     from ckanext.googleanalytics.plugin import GoogleAnalyticsPlugin
+
     if tk.config.get("googleanalytics.id"):
         data_dict = {
             "v": 1,

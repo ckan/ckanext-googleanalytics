@@ -10,8 +10,6 @@ import ckan.model as model
 
 from . import dbutil
 
-from ckan.cli import error_shout, click_config_option
-from ckan.cli.cli import CkanCommand
 import ckan.plugins.toolkit as tk
 
 log = logging.getLogger(__name__)
@@ -22,13 +20,15 @@ RESOURCE_URL_REGEX = re.compile("/dataset/[a-z0-9-_]+/resource/([a-z0-9-_]+)")
 DATASET_EDIT_REGEX = re.compile("/dataset/edit/([a-z0-9-_]+)")
 
 
-@click.group(short_help=u"GoogleAnalytics commands")
-@click.help_option(u"-h", u"--help")
-@click_config_option
-@click.pass_context
-def googleanalytics(ctx, config, *args, **kwargs):
-    ctx.obj = CkanCommand(config)
+def get_commands():
+    return [
+        googleanalytics
+    ]
 
+
+@click.group(short_help=u"GoogleAnalytics commands")
+def googleanalytics():
+    pass
 
 @googleanalytics.command()
 def init():

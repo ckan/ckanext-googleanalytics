@@ -2,6 +2,7 @@
 
 import hashlib
 import logging
+import six
 
 from flask import Blueprint
 
@@ -77,7 +78,7 @@ def _post_analytics(
         data_dict = {
             "v": 1,
             "tid": tk.config.get("googleanalytics.id"),
-            "cid": hashlib.md5(tk.c.user).hexdigest(),
+            "cid": hashlib.md5(six.ensure_binary(tk.c.user)).hexdigest(),
             # customer id should be obfuscated
             "t": "event",
             "dh": tk.request.environ["HTTP_HOST"],

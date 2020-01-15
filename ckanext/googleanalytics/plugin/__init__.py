@@ -20,8 +20,7 @@ import ckan.plugins.toolkit as tk
 
 from ckan.exceptions import CkanVersionException
 
-import ckanext.googleanalytics.commands as commands
-
+DEFAULT_RESOURCE_URL_TAG = "/downloads/"
 
 log = logging.getLogger(__name__)
 
@@ -101,7 +100,7 @@ class GoogleAnalyticsPlugin(GAMixinPlugin, p.SingletonPlugin):
         if "googleanalytics_resource_prefix" not in config:
             config[
                 "googleanalytics_resource_prefix"
-            ] = commands.DEFAULT_RESOURCE_URL_TAG
+            ] = DEFAULT_RESOURCE_URL_TAG
         self.googleanalytics_resource_prefix = config[
             "googleanalytics_resource_prefix"
         ]

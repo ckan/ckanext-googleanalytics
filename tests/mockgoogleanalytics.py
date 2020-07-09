@@ -53,9 +53,8 @@ class ReusableServer(BaseHTTPServer.HTTPServer):
 
 
 def runmockserver():
-    server_address = ('localhost', 6969)
-    httpd = ReusableServer(server_address,
-                           MockHandler)
+    server_address = ("localhost", 6969)
+    httpd = ReusableServer(server_address, MockHandler)
     httpd_thread = threading.Thread(target=httpd.serve_til_quit)
     httpd_thread.setDaemon(True)
     httpd_thread.start()

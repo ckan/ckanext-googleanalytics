@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from future import standard_library
-
-standard_library.install_aliases()
-
-import urllib.parse
+from six.moves.urllib.parse import urlencode
 import ast
 import logging
 import threading
@@ -48,7 +44,7 @@ class AnalyticsPostThread(threading.Thread):
             # grabs host from queue
             data_dict = self.queue.get()
 
-            data = urllib.parse.urlencode(data_dict)
+            data = urlencode(data_dict)
             log.debug("Sending API event to Google Analytics: " + data)
             # send analytics
             res = requests.post(

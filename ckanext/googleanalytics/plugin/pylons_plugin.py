@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import queue
+import Queue as queue
 
 import hashlib
 import importlib

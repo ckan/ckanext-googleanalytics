@@ -6,7 +6,6 @@ import ast
 import logging
 import threading
 
-from builtins import str, range
 
 import requests
 

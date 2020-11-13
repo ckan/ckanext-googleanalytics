@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from builtins import str
+
 import logging
 from ckan.lib.base import BaseController, c, render, request
 from . import dbutil
@@ -12,6 +12,16 @@ from pylons import config
 from paste.util.multidict import MultiDict
 
 from ckan.controllers.api import ApiController
+
+from ckan.exceptions import CkanVersionException
+import ckan.plugins.toolkit as tk
+try:
+    tk.requires_ckan_version("2.9")
+except CkanVersionException:
+    pass
+else:
+    from builtins import str
+
 
 log = logging.getLogger("ckanext.googleanalytics")
 

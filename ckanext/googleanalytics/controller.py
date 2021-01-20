@@ -22,6 +22,8 @@ except CkanVersionException:
 else:
     from builtins import str
 
+import ckan.model as model
+from ckan.common import _, c, request, response
 
 log = logging.getLogger("ckanext.googleanalytics")
 
@@ -52,6 +54,44 @@ class GAApiController(ApiController):
                 "ea": request_obj_type + request_function,
                 "el": request_id,
             }
+            context = {'model': model, 'session': model.Session, 'user': c.user,
+                       'api_version': None, 'auth_user_obj': c.userobj}
+ 
+            
+            '''
+            Send GA custom dimension parameter to generate better report. 
+                "cd1" : Organization Name 
+                "cd2" : Package Name
+                "cd3" : Resource Name
+            '''
+            package_level_action = ['package_show', 'package_patch', 'package_update'
+                                    'datastore_search',
+                                    ]
+
+            resource_level_action = ['resource_show', 'resource_patch', 'resource_update',
+                                     'datastore_search', ' datastore_search_sql',
+                                     ]
+
+            if not request_id:
+                request_id = {}
+            else:
+                request_id = {"id": request_id}
+
+            if(request_obj_type in package_level_action):
+                pkg = logic.get_action(request_obj_type)(dict(context, return_type='dict'), request_id)
+                data_dict.update({
+                    "cd1": pkg["organization"]["name"],
+                    "cd2": pkg["name"]
+                })
+            if(request_obj_type in resource_level_action):
+                resource = logic.get_action('resource_show')(dict(context, return_type='dict'), request_id)
+                pkg = logic.get_action('package_show')(
+                    dict(context, return_type='dict'), {'id': resource['package_id']})
+                data_dict.update({
+                    "cd1": pkg["organization"]["name"],
+                    "cd2": pkg["name"],
+                    "cd3": resource["name"]
+                })   
             plugin.GoogleAnalyticsPlugin.analytics_queue.put(data_dict)
 
     def action(self, logic_function, ver=None):
@@ -62,7 +102,11 @@ class GAApiController(ApiController):
                 try_url_params=side_effect_free
             )
             if isinstance(request_data, dict):
-                id = request_data.get("id", "")
+                if request_data.get("id", False):
+                    id = request_data.get("id")
+                else: 
+                    id = request_data.get("resource_id")
+
                 if "q" in request_data:
                     id = request_data["q"]
                 if "query" in request_data:

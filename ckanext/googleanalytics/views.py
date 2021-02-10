@@ -14,7 +14,7 @@ import ckan.views.resource as resource
 
 from ckan.common import g
 
-CONFIG_HANDLER_PATH = 'ckanext.googleanalytics.download_handler'
+CONFIG_HANDLER_PATH = 'googleanalytics.download_handler'
 
 log = logging.getLogger(__name__)
 ga = Blueprint("google_analytics", "google_analytics")

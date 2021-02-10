@@ -67,7 +67,7 @@ Installation
       googleanalytics.track_events = false
       googleanalytics.fields = {}
       googleanalytics.enable_user_id = false
-      ckanext.googleanalytics.download_handler = ckan.views.resource:download
+      googleanalytics.download_handler = ckan.views.resource:download
 
    ``resource_prefix`` is an arbitrary identifier so that we can query
    for downloads in Google Analytics.  It can theoretically be any

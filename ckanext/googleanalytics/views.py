@@ -5,6 +5,7 @@ import logging
 import six
 
 from flask import Blueprint
+from werkzeug.utils import import_string
 
 import ckan.logic as logic
 import ckan.plugins.toolkit as tk
@@ -12,6 +13,8 @@ import ckan.views.api as api
 import ckan.views.resource as resource
 
 from ckan.common import g
+
+CONFIG_HANDLER_PATH = 'ckanext.googleanalytics.download_handler'
 
 log = logging.getLogger(__name__)
 ga = Blueprint("google_analytics", "google_analytics")
@@ -49,6 +52,17 @@ ga.add_url_rule(
 
 
 def download(id, resource_id, filename=None, package_type="dataset"):
+    handler_path = tk.config.get(CONFIG_HANDLER_PATH)
+    if handler_path:
+        handler = import_string(handler_path, silent=True)
+    else:
+        handler = None
+        log.warning((
+            'Missing {} config option.'
+        ).format(CONFIG_HANDLER_PATH))
+    if not handler:
+        log.debug('Use default CKAN callback for resource.download')
+        handler = resource.download
     _post_analytics(
         g.user,
         "CKAN Resource Download Request",
@@ -56,7 +70,9 @@ def download(id, resource_id, filename=None, package_type="dataset"):
         "Download",
         resource_id,
     )
-    return resource.download(package_type, id, resource_id, filename)
+    return handler(
+        package_type=package_type, id=id,
+        resource_id=resource_id, filename=filename)
 
 
 ga.add_url_rule(

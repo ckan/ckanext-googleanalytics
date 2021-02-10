@@ -67,6 +67,7 @@ Installation
       googleanalytics.track_events = false
       googleanalytics.fields = {}
       googleanalytics.enable_user_id = false
+      ckanext.googleanalytics.download_handler = ckan.views.resource:download
 
    ``resource_prefix`` is an arbitrary identifier so that we can query
    for downloads in Google Analytics.  It can theoretically be any
@@ -92,6 +93,15 @@ Installation
    If ``enable_user_id`` is set to ``true``, then logged in users will be tracked into the Google Analytics' dashboard.
    This way metrics can be tracked for every logged in user. You can read more
    about this feature and its benefits `here <https://support.google.com/analytics/answer/3123662>`_.
+
+   When resource is downloaded, ckanext-googleanalytics posts event to
+   GA and calls default download callback. If you are using CKAN>=2.9
+   and some of your plugins redefines `resource.download`
+   route(ckanext-cloudstorage, for example), you can specify which
+   function must be called instead of `ckan.views.resource:download`
+   via `ckanext.googleanalytics.download_handler` config variable. For ckanext-cloudstorage you can use::
+
+     ckanext.googleanalytics.download_handler = ckanext.cloudstorage.views:download
 
 Domain Linking
 --------------

@@ -1,6 +1,16 @@
+import os
 from setuptools import setup, find_packages
+HERE = os.path.dirname(__file__)
 
-version = "0.1"
+version = "2.0.3"
+
+extras_require = {}
+_extras_groups = [
+    ('requirements', 'requirements.txt'),
+]
+for group, filepath in _extras_groups:
+    with open(os.path.join(HERE, filepath), 'r') as f:
+        extras_require[group] = f.readlines()
 
 setup(
     name="ckanext-googleanalytics",
@@ -19,6 +29,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[],
+    extras_require=extras_require,
     entry_points="""
         [ckan.plugins]
 	# Add plugins here, eg

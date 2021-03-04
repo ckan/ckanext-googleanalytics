@@ -3,7 +3,7 @@ CKAN Google Analytics Extension
 
 **Status:** Production
 
-**CKAN Version:** >= 2.7, <=2.9
+**CKAN Version:** >= 2.7
 
 A CKAN extension that both sends tracking data to Google Analytics and
 retrieves statistics from Google Analytics and inserts them into CKAN pages.

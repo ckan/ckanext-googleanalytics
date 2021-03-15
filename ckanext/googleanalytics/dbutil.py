@@ -104,7 +104,7 @@ def get_top_packages(limit=20):
     ).order_by(package_stats.c.visits_recently.desc())
     res = connection.execute(s).fetchmany(limit)
     for package_id, recent, ever in res:
-        item = q.filter("package.id = '%s'" % package_id)
+        item = q.filter(text("package.id = '%s'" % package_id))
         if not item.count():
             continue
         items.append((item.first(), recent, ever))

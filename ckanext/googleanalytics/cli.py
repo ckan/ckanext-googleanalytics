@@ -139,7 +139,7 @@ def internal_save(packages_data, summary_date):
                 AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - %s
              ) + t1.count
              WHERE t1.running_total = 0 AND tracking_type = 'resource';"""
-    engine.execute(sql, self.recent_view_days)
+    engine.execute(sql, _recent_view_days())
 
     # update summary totals for pages
     sql = """UPDATE tracking_summary t1
@@ -158,7 +158,7 @@ def internal_save(packages_data, summary_date):
              WHERE t1.running_total = 0 AND tracking_type = 'page'
              AND t1.package_id IS NOT NULL
              AND t1.package_id != '~~not~found~~';"""
-    engine.execute(sql, self.recent_view_days)
+    engine.execute(sql, _recent_view_days())
 
 
 def bulk_import(service, profile_id, start_date=None):
@@ -329,7 +329,7 @@ def get_ga_data(service, profile_id, query_filter):
        {'identifier': {'recent':3, 'ever':6}}
     """
     now = datetime.datetime.now()
-    recent_date = now - datetime.timedelta(self.recent_view_days)
+    recent_date = now - datetime.timedelta(_recent_view_days())
     recent_date = recent_date.strftime("%Y-%m-%d")
     floor_date = datetime.date(2005, 1, 1)
     packages = {}

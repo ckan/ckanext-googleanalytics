@@ -9,12 +9,14 @@ import time
 from pylons import config as pylonsconfig
 from ckan.lib.cli import CkanCommand
 import ckan.model as model
+from ckan.plugins.toolkit import asint
 
 from . import dbutil
 
 log = logging.getLogger("ckanext.googleanalytics")
 PACKAGE_URL = "/dataset/"  # XXX get from routes...
 DEFAULT_RESOURCE_URL_TAG = "/downloads/"
+DEFAULT_RECENT_VIEW_DAYS = 14
 
 RESOURCE_URL_REGEX = re.compile("/dataset/[a-z0-9-_]+/resource/([a-z0-9-_]+)")
 DATASET_EDIT_REGEX = re.compile("/dataset/edit/([a-z0-9-_]+)")
@@ -63,6 +65,9 @@ class LoadAnalytics(CkanCommand):
         self.resource_url_tag = self.CONFIG.get(
             "googleanalytics_resource_prefix", DEFAULT_RESOURCE_URL_TAG
         )
+        self.recent_view_days = asint(self.CONFIG.get(
+            "googleanalytics.recent_view_days", DEFAULT_RECENT_VIEW_DAYS
+        ))
 
         # funny dance we need to do to make sure we've got a
         # configured session
@@ -121,10 +126,10 @@ class LoadAnalytics(CkanCommand):
                     SELECT sum(count)
                     FROM tracking_summary t2
                     WHERE t1.url = t2.url
-                    AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - 14
+                    AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - %s
                  ) + t1.count
                  WHERE t1.running_total = 0 AND tracking_type = 'resource';"""
-        engine.execute(sql)
+        engine.execute(sql, self.recent_view_days)
 
         # update summary totals for pages
         sql = """UPDATE tracking_summary t1
@@ -138,12 +143,12 @@ class LoadAnalytics(CkanCommand):
                     SELECT sum(count)
                     FROM tracking_summary t2
                     WHERE t1.package_id = t2.package_id
-                    AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - 14
+                    AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - %s
                  ) + t1.count
                  WHERE t1.running_total = 0 AND tracking_type = 'page'
                  AND t1.package_id IS NOT NULL
                  AND t1.package_id != '~~not~found~~';"""
-        engine.execute(sql)
+        engine.execute(sql, self.recent_view_days)
 
     def bulk_import(self):
         if len(self.args) == 3:
@@ -345,7 +350,7 @@ class LoadAnalytics(CkanCommand):
            {'identifier': {'recent':3, 'ever':6}}
         """
         now = datetime.datetime.now()
-        recent_date = now - datetime.timedelta(14)
+        recent_date = now - datetime.timedelta(self.recent_view_days)
         recent_date = recent_date.strftime("%Y-%m-%d")
         floor_date = datetime.date(2005, 1, 1)
         packages = {}

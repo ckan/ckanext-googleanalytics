@@ -12,12 +12,16 @@ for group, filepath in _extras_groups:
     with open(os.path.join(HERE, filepath), 'r') as f:
         extras_require[group] = f.readlines()
 
+# Get the long description from the relevant file
+with open(os.path.join(HERE, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
     name="ckanext-googleanalytics",
     version=version,
     description="Add GA tracking and reporting to CKAN instance",
-    long_description="""\
-	""",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     classifiers=[],  # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
     keywords="",
     author="Seb Bacon",

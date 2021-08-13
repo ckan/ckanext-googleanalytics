@@ -22,19 +22,17 @@ DATASET_EDIT_REGEX = re.compile("/dataset/edit/([a-z0-9-_]+)")
 
 
 def get_commands():
-    return [
-        googleanalytics
-    ]
+    return [googleanalytics]
 
 
 @click.group(short_help=u"GoogleAnalytics commands")
 def googleanalytics():
     pass
 
+
 @googleanalytics.command()
 def init():
-    """Initialise the local stats database tables
-    """
+    """Initialise the local stats database tables"""
     model.Session.remove()
     model.Session.configure(bind=model.meta.engine)
     dbutil.init_tables()
@@ -75,9 +73,11 @@ def _resource_url_tag():
 
 
 def _recent_view_days():
-    return tk.asint(tk.config.get(
-        "googleanalytics.recent_view_days", DEFAULT_RECENT_VIEW_DAYS
-    ))
+    return tk.asint(
+        tk.config.get(
+            "googleanalytics.recent_view_days", DEFAULT_RECENT_VIEW_DAYS
+        )
+    )
 
 
 ###############################################################################
@@ -253,8 +253,7 @@ def get_ga_data_new(service, profile_id, start_date=None, end_date=None):
 
 
 def save_ga_data(packages_data):
-    """Save tuples of packages_data to the database
-    """
+    """Save tuples of packages_data to the database"""
     for identifier, visits in list(packages_data.items()):
         recently = visits.get("recent", 0)
         ever = visits.get("ever", 0)
@@ -287,10 +286,13 @@ def save_ga_data(packages_data):
 
 
 def ga_query(
-    service, profile_id, query_filter=None, from_date=None, metrics=None,
+    service,
+    profile_id,
+    query_filter=None,
+    from_date=None,
+    metrics=None,
 ):
-    """Execute a query against Google Analytics
-    """
+    """Execute a query against Google Analytics"""
     now = datetime.datetime.now()
     to_date = now.strftime("%Y-%m-%d")
     if isinstance(from_date, datetime.date):

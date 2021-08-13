@@ -6,6 +6,7 @@ import ckan.plugins as plugins
 from ckanext.googleanalytics.views import ga
 from ckanext.googleanalytics.cli import get_commands
 
+
 class GAMixinPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IClick)

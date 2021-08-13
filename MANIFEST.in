@@ -1,4 +1,4 @@
 include README.rst
 include LICENSE.txt
 include requirements.txt
-recursive-include ckanext/googleanalytics *.html *.js
+recursive-include ckanext/googleanalytics *.html *.js *.json *.css *.yml *.mo

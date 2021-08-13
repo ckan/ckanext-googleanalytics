@@ -1,3 +1,63 @@
 [tool.black]
 line-length = 79
-include = '\.py$'
+
+[tool.towncrier]
+issue_format = ""
+directory = "changes"
+package = "ckanext.googleanalytics"
+package_dir = "ckanext"
+filename = "CHANGELOG.rst"
+name = "ckanext-googleanalytics"
+
+[tool.pyright]
+pythonVersion = "3.8"
+include = ["ckanext/googleanalytics"]
+exclude = [
+    "**/test*",
+    "**/migration",
+]
+ignore = [
+       "ckan"
+]
+strict = []
+
+strictParameterNoneValue = true # type must be Optional if default value is None
+
+reportFunctionMemberAccess = true # non-standard member accesses for functions
+reportMissingImports = true
+reportMissingModuleSource = true
+reportMissingTypeStubs = false
+reportImportCycles = false
+reportUnusedImport = false
+reportUnusedClass = true
+reportUnusedFunction = true
+reportUnusedVariable = false
+reportDuplicateImport = true
+reportOptionalSubscript = true
+reportOptionalMemberAccess = true
+reportOptionalCall = true
+reportOptionalIterable = true
+reportOptionalContextManager = true
+reportOptionalOperand = true
+reportTypedDictNotRequiredAccess = false # We are using Context in a way that conflicts with this check
+reportConstantRedefinition = false
+reportIncompatibleMethodOverride = false
+reportIncompatibleVariableOverride = true
+reportOverlappingOverload = true
+reportUntypedFunctionDecorator = false
+reportUnknownParameterType = false # it creates a lot of noise
+reportUnknownArgumentType = false
+reportUnknownLambdaType = false
+reportMissingTypeArgument = true
+reportInvalidTypeVarUse = true
+reportCallInDefaultInitializer = true
+reportUnknownVariableType = false
+reportUntypedBaseClass = false # ignore it because we are relying on untyped CKAN
+reportUnnecessaryIsInstance = true
+reportUnnecessaryCast = true
+reportUnnecessaryComparison = true
+reportAssertAlwaysTrue = true
+reportSelfClsParameterName = true
+reportUnusedCallResult = false # allow function calls for side-effect only (like logic.check_acces)
+
+useLibraryCodeForTypes = true

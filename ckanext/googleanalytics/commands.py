@@ -23,8 +23,7 @@ DATASET_EDIT_REGEX = re.compile("/dataset/edit/([a-z0-9-_]+)")
 
 
 class InitDB(CkanCommand):
-    """Initialise the local stats database tables
-    """
+    """Initialise the local stats database tables"""
 
     summary = __doc__.split("\n")[0]
     usage = __doc__
@@ -65,9 +64,11 @@ class LoadAnalytics(CkanCommand):
         self.resource_url_tag = self.CONFIG.get(
             "googleanalytics_resource_prefix", DEFAULT_RESOURCE_URL_TAG
         )
-        self.recent_view_days = asint(self.CONFIG.get(
-            "googleanalytics.recent_view_days", DEFAULT_RECENT_VIEW_DAYS
-        ))
+        self.recent_view_days = asint(
+            self.CONFIG.get(
+                "googleanalytics.recent_view_days", DEFAULT_RECENT_VIEW_DAYS
+            )
+        )
 
         # funny dance we need to do to make sure we've got a
         # configured session
@@ -267,8 +268,7 @@ class LoadAnalytics(CkanCommand):
             log.info("Saved %s records from google" % len(packages_data))
 
     def save_ga_data(self, packages_data):
-        """Save tuples of packages_data to the database
-        """
+        """Save tuples of packages_data to the database"""
         for identifier, visits in list(packages_data.items()):
             recently = visits.get("recent", 0)
             ever = visits.get("ever", 0)
@@ -309,8 +309,7 @@ class LoadAnalytics(CkanCommand):
         metrics=None,
         sort=None,
     ):
-        """Execute a query against Google Analytics
-        """
+        """Execute a query against Google Analytics"""
         if not to_date:
             now = datetime.datetime.now()
             to_date = now.strftime("%Y-%m-%d")

@@ -2,7 +2,7 @@ import os
 from setuptools import setup, find_packages
 HERE = os.path.dirname(__file__)
 
-version = "2.0.4"
+version = "2.0.5"
 
 extras_require = {}
 _extras_groups = [

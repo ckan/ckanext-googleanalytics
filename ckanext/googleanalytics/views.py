@@ -14,7 +14,7 @@ import ckan.views.resource as resource
 
 from ckan.common import g
 
-CONFIG_HANDLER_PATH = 'googleanalytics.download_handler'
+CONFIG_HANDLER_PATH = "googleanalytics.download_handler"
 
 log = logging.getLogger(__name__)
 ga = Blueprint("google_analytics", "google_analytics")
@@ -40,7 +40,9 @@ def action(logic_function, ver=api.API_MAX_VERSION):
 
 
 ga.add_url_rule(
-    "/api/action/<logic_function>", methods=["GET", "POST"], view_func=action,
+    "/api/action/<logic_function>",
+    methods=["GET", "POST"],
+    view_func=action,
 )
 ga.add_url_rule(
     u"/<int(min=3, max={0}):ver>/action/<logic_function>".format(
@@ -57,11 +59,9 @@ def download(id, resource_id, filename=None, package_type="dataset"):
         handler = import_string(handler_path, silent=True)
     else:
         handler = None
-        log.warning((
-            'Missing {} config option.'
-        ).format(CONFIG_HANDLER_PATH))
+        log.warning(("Missing {} config option.").format(CONFIG_HANDLER_PATH))
     if not handler:
-        log.debug('Use default CKAN callback for resource.download')
+        log.debug("Use default CKAN callback for resource.download")
         handler = resource.download
     _post_analytics(
         g.user,
@@ -71,8 +71,11 @@ def download(id, resource_id, filename=None, package_type="dataset"):
         resource_id,
     )
     return handler(
-        package_type=package_type, id=id,
-        resource_id=resource_id, filename=filename)
+        package_type=package_type,
+        id=id,
+        resource_id=resource_id,
+        filename=filename,
+    )
 
 
 ga.add_url_rule(

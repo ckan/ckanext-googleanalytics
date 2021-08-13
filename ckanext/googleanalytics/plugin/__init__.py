@@ -47,7 +47,9 @@ class AnalyticsPostThread(threading.Thread):
             log.debug("Sending API event to Google Analytics: " + data)
             # send analytics
             res = requests.post(
-                "http://www.google-analytics.com/collect", data, timeout=10,
+                "http://www.google-analytics.com/collect",
+                data,
+                timeout=10,
             )
             # signals to queue job is done
             self.queue.task_done()

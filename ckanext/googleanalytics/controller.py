@@ -15,6 +15,7 @@ from ckan.controllers.api import ApiController
 
 from ckan.exceptions import CkanVersionException
 import ckan.plugins.toolkit as tk
+
 try:
     tk.requires_ckan_version("2.9")
 except CkanVersionException:

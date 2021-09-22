@@ -1,5 +1,5 @@
 // Add Google Analytics Event Tracking to resource download links.
-this.ckan.module("google-analytics", function(jQuery, _) {
+ckan.module("google-analytics", function(jQuery, _) {
   "use strict";
   return {
     options: {

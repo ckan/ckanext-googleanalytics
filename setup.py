@@ -1,4 +1,5 @@
 import os
+from io import open
 from setuptools import setup, find_packages
 HERE = os.path.dirname(__file__)
 

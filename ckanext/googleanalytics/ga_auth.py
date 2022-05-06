@@ -2,15 +2,7 @@ import httplib2
 from apiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 
-from ckan.exceptions import CkanVersionException
-import ckan.plugins.toolkit as tk
-
-try:
-    tk.requires_ckan_version("2.9")
-except CkanVersionException:
-    from pylons import config
-else:
-    config = tk.config
+from ckanext.googleanalytics import utils
 
 
 def _prepare_credentials(credentials_filename):
@@ -51,8 +43,8 @@ def get_profile_id(service):
 
     if not accounts.get("items"):
         return None
-    accountName = config.get("googleanalytics.account")
-    webPropertyId = config.get("googleanalytics.id")
+    accountName = utils.config_account()
+    webPropertyId = utils.config_id()
     for acc in accounts.get("items"):
         if acc.get("name") == accountName:
             accountId = acc.get("id")

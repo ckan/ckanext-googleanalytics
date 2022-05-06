@@ -14,8 +14,6 @@ from ckan.exceptions import CkanConfigurationException, CkanVersionException
 
 from ckanext.googleanalytics import helpers
 
-DEFAULT_RESOURCE_URL_TAG = "/downloads/"
-
 log = logging.getLogger(__name__)
 
 try:
@@ -60,7 +58,6 @@ class GoogleAnalyticsPlugin(GAMixinPlugin, p.SingletonPlugin):
     p.implements(p.IConfigurer, inherit=True)
     p.implements(p.ITemplateHelpers)
 
-
     def configure(self, config):
         # spawn a pool of 5 threads, and pass them queue instance
         for _i in range(5):
@@ -76,18 +73,9 @@ class GoogleAnalyticsPlugin(GAMixinPlugin, p.SingletonPlugin):
             msg = "Missing googleanalytics.id in config"
             raise GoogleAnalyticsException(msg)
 
-        # If resource_prefix is not in config file then write the default value
-        # to the config dict, otherwise templates seem to get 'true' when they
-        # try to read resource_prefix from config.
-        if "googleanalytics_resource_prefix" not in config:
-            config[
-                "googleanalytics_resource_prefix"
-            ] = DEFAULT_RESOURCE_URL_TAG
-
     def get_helpers(self):
-        """Return the CKAN 2.0 template helper functions this plugin provides.
-
-        See ITemplateHelpers.
-
-        """
         return helpers.get_helpers()
+
+
+if tk.check_ckan_version("2.10"):
+    tk.blanket.config_declarations(GoogleAnalyticsPlugin)

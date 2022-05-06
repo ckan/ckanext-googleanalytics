@@ -13,7 +13,7 @@
         {% set type = 'asset' if h.ckan_version().split('.')[1] | int >= 9 else 'resource' %}
         {% include 'googleanalytics/snippets/event_tracking_' ~ type ~ '.html' %}
         <div class="js-hide" data-module="google-analytics"
-             data-module-googleanalytics_resource_prefix="{{ g.googleanalytics_resource_prefix }}">
+             data-module-googleanalytics_resource_prefix="{{ h.googleanalytics_resource_prefix() }}">
         </div>
     {% endblock %}
 {% endblock %}

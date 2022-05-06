@@ -6,9 +6,9 @@ import importlib
 
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as tk
+from ckanext.googleanalytics import utils
 
 from ckan.controllers.package import PackageController
-from pylons import config
 from routes.mapper import SubMapper
 
 
@@ -147,19 +147,17 @@ def wrap_resource_download(func):
 def _post_analytics(
     user, event_type, request_obj_type, request_function, request_id
 ):
-
-    if config.get("googleanalytics.id"):
-        data_dict = {
-            "v": 1,
-            "tid": config.get("googleanalytics.id"),
-            "cid": hashlib.md5(tk.c.user).hexdigest(),
-            # customer id should be obfuscated
-            "t": "event",
-            "dh": tk.c.environ["HTTP_HOST"],
-            "dp": tk.c.environ["PATH_INFO"],
-            "dr": tk.c.environ.get("HTTP_REFERER", ""),
-            "ec": event_type,
-            "ea": request_obj_type + request_function,
-            "el": request_id,
-        }
-        GAMixinPlugin.analytics_queue.put(data_dict)
+    data_dict = {
+        "v": 1,
+        "tid": utils.config_id(),
+        "cid": hashlib.md5(tk.c.user).hexdigest(),
+        # customer id should be obfuscated
+        "t": "event",
+        "dh": tk.c.environ["HTTP_HOST"],
+        "dp": tk.c.environ["PATH_INFO"],
+        "dr": tk.c.environ.get("HTTP_REFERER", ""),
+        "ec": event_type,
+        "ea": request_obj_type + request_function,
+        "el": request_id,
+    }
+    GAMixinPlugin.analytics_queue.put(data_dict)

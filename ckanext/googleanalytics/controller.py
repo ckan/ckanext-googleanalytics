@@ -7,7 +7,6 @@ from . import dbutil
 import ckan.logic as logic
 import hashlib
 from . import plugin
-from pylons import config
 
 from paste.util.multidict import MultiDict
 
@@ -15,6 +14,7 @@ from ckan.controllers.api import ApiController
 
 from ckan.exceptions import CkanVersionException
 import ckan.plugins.toolkit as tk
+from ckanext.googleanalytics import utils
 
 try:
     tk.requires_ckan_version("2.9")
@@ -39,21 +39,20 @@ class GAApiController(ApiController):
     def _post_analytics(
         self, user, request_obj_type, request_function, request_id
     ):
-        if config.get("googleanalytics.id"):
-            data_dict = {
-                "v": 1,
-                "tid": config.get("googleanalytics.id"),
-                "cid": hashlib.md5(user).hexdigest(),
-                # customer id should be obfuscated
-                "t": "event",
-                "dh": c.environ["HTTP_HOST"],
-                "dp": c.environ["PATH_INFO"],
-                "dr": c.environ.get("HTTP_REFERER", ""),
-                "ec": "CKAN API Request",
-                "ea": request_obj_type + request_function,
-                "el": request_id,
-            }
-            plugin.GoogleAnalyticsPlugin.analytics_queue.put(data_dict)
+        data_dict = {
+            "v": 1,
+            "tid": utils.config_id(),
+            "cid": hashlib.md5(user).hexdigest(),
+            # customer id should be obfuscated
+            "t": "event",
+            "dh": c.environ["HTTP_HOST"],
+            "dp": c.environ["PATH_INFO"],
+            "dr": c.environ.get("HTTP_REFERER", ""),
+            "ec": "CKAN API Request",
+            "ea": request_obj_type + request_function,
+            "el": request_id,
+        }
+        plugin.GoogleAnalyticsPlugin.analytics_queue.put(data_dict)
 
     def action(self, logic_function, ver=None):
         try:

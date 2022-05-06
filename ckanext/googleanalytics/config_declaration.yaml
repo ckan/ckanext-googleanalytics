@@ -1,0 +1,30 @@
+version: 1
+groups:
+  - annotation: GoogleAnalytics settings
+    options:
+      - key: googleanalytics.id
+        required: true
+        placeholder: UA-000000000-1
+
+      - key: googleanalytics.download_handler
+        default: ckan.views.resource:download
+
+      - key: googleanalytics.account
+
+      - key: googleanalytics.domain
+        default: auto
+
+      - key: googleanalytics.fields
+        default: "{}"
+
+      - key: googleanalytics.linked_domains
+        default: ""
+
+      - key: googleanalytics.enable_user_id
+        type: bool
+
+      - key: googleanalytics_resource_prefix
+        default: "/downloads/"
+
+      - key: googleanalytics.recent_view_days
+        default: 14

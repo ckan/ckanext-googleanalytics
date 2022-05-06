@@ -57,7 +57,6 @@ retrieves statistics from Google Analytics and inserts them into CKAN pages.
 
 		googleanalytics_resource_prefix = /downloads/
 		googleanalytics.domain = auto
-        googleanalytics.track_events = false
         googleanalytics.fields = {}
         googleanalytics.enable_user_id = false
         googleanalytics.download_handler = ckan.views.resource:download
@@ -75,11 +74,6 @@ retrieves statistics from Google Analytics and inserts them into CKAN pages.
    See `Google's documentation
    <http://code.google.com/apis/analytics/docs/gaJS/gaJSApiDomainDirectory.html#_gat.GA_Tracker_._setDomainName>`_
    for more info.
-
-   If ``track_events`` is set, Google Analytics event tracking will be
-   enabled. *CKAN 1.x only.* *Note that event tracking for resource downloads
-   is always enabled,* ``track_events`` *enables event tracking for other
-   pages as well.*
 
    ``fields`` allows you to specify various options when creating the tracker. See `Google's documentation <https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference>`.
 
@@ -113,13 +107,6 @@ See `Googles' documentation<https://support.google.com/analytics/answer/1034342?
    ``--config`` option to point to your site config file):
 
 		paster initdb --config=../ckan/development.ini
-
-2. Optionally, add::
-
-		googleanalytics.show_downloads = true
-
-   to your CKAN ini file. If ``show_downloads`` is set, a download count for
-   resources will be displayed on individual package pages.
 
 3. Follow the steps in the *Authorization* section below.
 

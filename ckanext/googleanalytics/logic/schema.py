@@ -13,14 +13,14 @@ def resource_stats_show(not_empty):
 
 @validator_args
 def event_report(
-    not_empty, isodate, ignore_missing, json_list_or_string, default
+    not_empty, isodate, json_list_or_string, default, ignore_empty
 ):
     return {
         "start_date": [not_empty, isodate],
         "end_date": [not_empty, isodate],
-        "category": [not_empty],
-        "action": [not_empty],
-        "label": [ignore_missing, not_empty],
+        "category": [ignore_empty],
+        "action": [ignore_empty],
+        "label": [ignore_empty],
         "dimensions": [
             default("ga:eventCategory,ga:eventAction,ga:eventLabel"),
             json_list_or_string,

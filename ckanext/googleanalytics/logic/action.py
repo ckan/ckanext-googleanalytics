@@ -57,11 +57,23 @@ def event_report(context, data_dict):
     tk.check_access("sysadmin", context, data_dict)
 
     se = init_service(utils.config_credentials())
-    filters = "ga:eventAction=={action};ga:eventCategory=={category}".format(
-        action=data_dict["action"], category=data_dict["category"]
-    )
+    filters = []
+    if "action" in data_dict:
+        filters.append(
+            "ga:eventAction=={action}".format(action=data_dict["action"])
+        )
+
+    if "category" in data_dict:
+        filters.append(
+            "ga:eventCategory=={category}".format(
+                category=data_dict["category"]
+            )
+        )
+
     if "label" in data_dict:
-        filters += ";ga:eventLabel=={label}".format(label=data_dict["label"])
+        filters.append(
+            "ga:eventLabel=={label}".format(label=data_dict["label"])
+        )
 
     report = (
         se.data()
@@ -72,7 +84,7 @@ def event_report(context, data_dict):
             metrics=",".join(data_dict["metrics"]),
             start_date=data_dict["start_date"].date().isoformat(),
             end_date=data_dict["end_date"].date().isoformat(),
-            filters=filters,
+            filters=";".join(filters) or None,
         )
         .execute()
     )

@@ -14,6 +14,14 @@ def config_account():
     return tk.config.get("googleanalytics.account")
 
 
+def config_profile_id():
+    return tk.config.get("googleanalytics.profile_id")
+
+
+def config_credentials():
+    return tk.config.get("googleanalytics.credentials.path")
+
+
 def config_domain():
     return tk.config.get("googleanalytics.domain", "auto")
 

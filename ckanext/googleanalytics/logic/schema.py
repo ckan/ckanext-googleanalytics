@@ -2,10 +2,31 @@ from ckan.logic.schema import validator_args
 
 
 @validator_args
-def googleanalytics_package_stats_show(not_empty):
+def package_stats_show(not_empty):
     return {"id": [not_empty]}
 
 
 @validator_args
-def googleanalytics_resource_stats_show(not_empty):
+def resource_stats_show(not_empty):
     return {"id": [not_empty]}
+
+
+@validator_args
+def event_report(
+    not_empty, isodate, ignore_missing, json_list_or_string, default
+):
+    return {
+        "start_date": [not_empty, isodate],
+        "end_date": [not_empty, isodate],
+        "category": [not_empty],
+        "action": [not_empty],
+        "label": [ignore_missing, not_empty],
+        "dimensions": [
+            default("ga:eventCategory,ga:eventAction,ga:eventLabel"),
+            json_list_or_string,
+        ],
+        "metrics": [
+            default("ga:totalEvents,ga:uniqueEvents,ga:eventValue"),
+            json_list_or_string,
+        ],
+    }

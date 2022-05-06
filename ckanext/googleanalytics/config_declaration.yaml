@@ -11,8 +11,12 @@ groups:
 
       - key: googleanalytics.account
 
+      - key: googleanalytics.profile_id
+
       - key: googleanalytics.domain
         default: auto
+
+      - key: googleanalytics.credentials.path
 
       - key: googleanalytics.fields
         default: "{}"

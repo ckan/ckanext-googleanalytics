@@ -12,7 +12,8 @@ import ckan.plugins.toolkit as tk
 
 from ckan.exceptions import CkanConfigurationException, CkanVersionException
 
-from ckanext.googleanalytics import helpers
+from .. import helpers
+from ..logic import action, auth
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +58,14 @@ class GoogleAnalyticsPlugin(GAMixinPlugin, p.SingletonPlugin):
     p.implements(p.IConfigurable, inherit=True)
     p.implements(p.IConfigurer, inherit=True)
     p.implements(p.ITemplateHelpers)
+    p.implements(p.IActions)
+    p.implements(p.IAuthFunctions)
+
+    def get_auth_functions(self):
+        return auth.get_auth()
+
+    def get_actions(self):
+        return action.get_actions()
 
     def configure(self, config):
         # spawn a pool of 5 threads, and pass them queue instance

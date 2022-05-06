@@ -4,22 +4,19 @@ from sqlalchemy import func
 
 import ckan.model as model
 
-# from ckan.model.authz import PSEUDO_USER__VISITOR
-from ckan.lib.base import *
-
 cached_tables = {}
 
 
 def init_tables():
     metadata = MetaData()
-    package_stats = Table(
+    Table(
         "package_stats",
         metadata,
         Column("package_id", String(60), primary_key=True),
         Column("visits_recently", Integer),
         Column("visits_ever", Integer),
     )
-    resource_stats = Table(
+    Table(
         "resource_stats",
         metadata,
         Column("resource_id", String(60), primary_key=True),

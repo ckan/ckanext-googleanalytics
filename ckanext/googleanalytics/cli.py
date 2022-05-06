@@ -10,8 +10,6 @@ import ckan.model as model
 
 from . import dbutil, utils
 
-import ckan.plugins.toolkit as tk
-
 log = logging.getLogger(__name__)
 PACKAGE_URL = "/dataset/"  # XXX get from routes...
 
@@ -105,7 +103,8 @@ def internal_save(packages_data, summary_date):
              SET package_id = COALESCE(
                  (SELECT id FROM package p WHERE t.url =  %s || p.name)
                  ,'~~not~found~~')
-             WHERE t.package_id = '~~not~found~~' AND tracking_type = 'page';"""
+             WHERE t.package_id = '~~not~found~~'
+             AND tracking_type = 'page';"""
     engine.execute(sql, "%sedit/" % PACKAGE_URL)
 
     # update summary totals for resources
@@ -120,7 +119,8 @@ def internal_save(packages_data, summary_date):
                 SELECT sum(count)
                 FROM tracking_summary t2
                 WHERE t1.url = t2.url
-                AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - %s
+                AND t2.tracking_date <= t1.tracking_date
+                AND t2.tracking_date >= t1.tracking_date - %s
              ) + t1.count
              WHERE t1.running_total = 0 AND tracking_type = 'resource';"""
     engine.execute(sql, utils.config_recent_view_days())
@@ -137,7 +137,8 @@ def internal_save(packages_data, summary_date):
                 SELECT sum(count)
                 FROM tracking_summary t2
                 WHERE t1.package_id = t2.package_id
-                AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - %s
+                AND t2.tracking_date <= t1.tracking_date
+                AND t2.tracking_date >= t1.tracking_date - %s
              ) + t1.count
              WHERE t1.running_total = 0 AND tracking_type = 'page'
              AND t1.package_id IS NOT NULL
@@ -243,7 +244,7 @@ def save_ga_data(packages_data):
         ever = visits.get("ever", 0)
         matches = RESOURCE_URL_REGEX.match(identifier)
         if matches:
-            resource_url = identifier[len(utils.config_prefix()) :]
+            resource_url = identifier[len(utils.config_prefix()):]
             resource = (
                 model.Session.query(model.Resource)
                 .autoflush(True)
@@ -256,7 +257,7 @@ def save_ga_data(packages_data):
             dbutil.update_resource_visits(resource.id, recently, ever)
             log.info("Updated %s with %s visits" % (resource.id, visits))
         else:
-            package_name = identifier[len(PACKAGE_URL) :]
+            package_name = identifier[len(PACKAGE_URL):]
             if "/" in package_name:
                 log.warning("%s not a valid package name" % package_name)
                 continue
@@ -337,8 +338,8 @@ def get_ga_data(service, profile_id, query_filter):
                         package = "/" + "/".join(package.split("/")[2:])
 
                     count = result[1]
-                    # Make sure we add the different representations of the same
-                    # dataset /mysite.com & /www.mysite.com ...
+                    # Make sure we add the different representations of the
+                    # same dataset /mysite.com & /www.mysite.com ...
                     val = 0
                     if package in packages and date_name in packages[package]:
                         val += packages[package][date_name]

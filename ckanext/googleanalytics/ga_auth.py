@@ -50,12 +50,9 @@ def get_profile_id(service):
             accountId = acc.get("id")
 
             # TODO: check, whether next line is doing something useful.
-            webproperties = (
-                service.management()
-                .webproperties()
-                .list(accountId=accountId)
-                .execute()
-            )
+            service.management().webproperties().list(
+                accountId=accountId
+            ).execute()
 
             profiles = (
                 service.management()

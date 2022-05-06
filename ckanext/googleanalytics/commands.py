@@ -103,7 +103,8 @@ class LoadAnalytics(CkanCommand):
                  SET package_id = COALESCE(
                      (SELECT id FROM package p WHERE t.url =  %s || p.name)
                      ,'~~not~found~~')
-                 WHERE t.package_id = '~~not~found~~' AND tracking_type = 'page';"""
+                 WHERE t.package_id = '~~not~found~~'
+                 AND tracking_type = 'page';"""
         engine.execute(sql, "%sedit/" % PACKAGE_URL)
 
         # update summary totals for resources
@@ -118,7 +119,8 @@ class LoadAnalytics(CkanCommand):
                     SELECT sum(count)
                     FROM tracking_summary t2
                     WHERE t1.url = t2.url
-                    AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - %s
+                    AND t2.tracking_date <= t1.tracking_date
+                    AND t2.tracking_date >= t1.tracking_date - %s
                  ) + t1.count
                  WHERE t1.running_total = 0 AND tracking_type = 'resource';"""
         engine.execute(sql, self.recent_view_days)
@@ -135,7 +137,8 @@ class LoadAnalytics(CkanCommand):
                     SELECT sum(count)
                     FROM tracking_summary t2
                     WHERE t1.package_id = t2.package_id
-                    AND t2.tracking_date <= t1.tracking_date AND t2.tracking_date >= t1.tracking_date - %s
+                    AND t2.tracking_date <= t1.tracking_date
+                    AND t2.tracking_date >= t1.tracking_date - %s
                  ) + t1.count
                  WHERE t1.running_total = 0 AND tracking_type = 'page'
                  AND t1.package_id IS NOT NULL
@@ -265,7 +268,7 @@ class LoadAnalytics(CkanCommand):
             ever = visits.get("ever", 0)
             matches = RESOURCE_URL_REGEX.match(identifier)
             if matches:
-                resource_url = identifier[len(self.resource_url_tag) :]
+                resource_url = identifier[len(self.resource_url_tag):]
                 resource = (
                     model.Session.query(model.Resource)
                     .autoflush(True)
@@ -278,7 +281,7 @@ class LoadAnalytics(CkanCommand):
                 dbutil.update_resource_visits(resource.id, recently, ever)
                 log.info("Updated %s with %s visits" % (resource.id, visits))
             else:
-                package_name = identifier[len(PACKAGE_URL) :]
+                package_name = identifier[len(PACKAGE_URL):]
                 if "/" in package_name:
                     log.warning("%s not a valid package name" % package_name)
                     continue
@@ -360,8 +363,8 @@ class LoadAnalytics(CkanCommand):
                             package = "/" + "/".join(package.split("/")[2:])
 
                         count = result[1]
-                        # Make sure we add the different representations of the same
-                        # dataset /mysite.com & /www.mysite.com ...
+                        # Make sure we add the different representations of the
+                        # same dataset /mysite.com & /www.mysite.com ...
                         val = 0
                         if (
                             package in packages

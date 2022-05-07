@@ -11,8 +11,8 @@ def get_auth():
 
 
 def package_stats_show(context, data_dict):
-    return {"success": is_authorized("package_show", context, data_dict)}
+    return is_authorized("package_show", context, data_dict)
 
 
 def resource_stats_show(context, data_dict):
-    return {"success": is_authorized("resource_show", context, data_dict)}
+    return is_authorized("resource_show", context, data_dict)

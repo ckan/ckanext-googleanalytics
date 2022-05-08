@@ -91,5 +91,5 @@ def event_report(context, data_dict):
 
     return {
         "headers": [h["name"] for h in report["columnHeaders"]],
-        "rows": report["rows"],
+        "rows": report.get("rows", []),
     }

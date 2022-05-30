@@ -17,6 +17,7 @@ if toolkit.requires_ckan_version("2.9"):
         migrate_db_for("googleanalytics")
 else:
     from dbutil import init_tables
+    
     @pytest.fixture()
     def clean_db(reset_db):
         reset_db()

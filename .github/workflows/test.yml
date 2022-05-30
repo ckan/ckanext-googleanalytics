@@ -65,4 +65,4 @@ jobs:
         paster --plugin=ckan db init -c test.ini
         paster --plugin=ckanext-googleanalytics initdb -c test.ini
     - name: Run tests
-      run: pytest --ckan-ini=test.ini --disable-warnings ckanext/googleanalytics/tests
+      run: pytest --ckan-ini=test.ini --cov=ckanext.googleanalytics --disable-warnings ckanext/googleanalytics/tests

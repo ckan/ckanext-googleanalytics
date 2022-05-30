@@ -23,7 +23,6 @@ else:
         init_tables()
 
 
-
 @register
 class PackageStatsFactory(SQLAlchemyModelFactory):
     class Meta:

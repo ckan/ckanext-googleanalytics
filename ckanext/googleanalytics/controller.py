@@ -11,16 +11,8 @@ from paste.util.multidict import MultiDict
 
 from ckan.controllers.api import ApiController
 
-from ckan.exceptions import CkanVersionException
 import ckan.plugins.toolkit as tk
 from ckanext.googleanalytics import utils
-
-try:
-    tk.requires_ckan_version("2.9")
-except CkanVersionException:
-    pass
-else:
-    from builtins import str
 
 
 log = logging.getLogger("ckanext.googleanalytics")

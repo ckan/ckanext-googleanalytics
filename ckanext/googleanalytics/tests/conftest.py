@@ -10,7 +10,7 @@ import ckan.model as model
 from ckanext.googleanalytics.model import PackageStats, ResourceStats
 
 
-if toolkit.requires_ckan_version("2.9"):
+if toolkit.check_ckan_version("2.9"):
     @pytest.fixture()
     def clean_db(reset_db, migrate_db_for):
         reset_db()

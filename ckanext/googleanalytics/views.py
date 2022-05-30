@@ -7,7 +7,6 @@ import six
 from flask import Blueprint
 from werkzeug.utils import import_string
 
-import ckan.logic as logic
 import ckan.plugins.toolkit as tk
 import ckan.views.api as api
 import ckan.views.resource as resource
@@ -22,7 +21,7 @@ ga = Blueprint("google_analytics", "google_analytics")
 
 def action(logic_function, ver=api.API_MAX_VERSION):
     try:
-        function = logic.get_action(logic_function)
+        function = tk.get_action(logic_function)
         side_effect_free = getattr(function, "side_effect_free", False)
         request_data = api._get_request_data(try_url_params=side_effect_free)
         if isinstance(request_data, dict):

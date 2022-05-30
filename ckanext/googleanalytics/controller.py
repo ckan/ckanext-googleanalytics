@@ -4,7 +4,6 @@ import logging
 from ckan.lib.base import BaseController, c, render, request
 from . import dbutil
 
-import ckan.logic as logic
 import hashlib
 from . import plugin
 
@@ -56,7 +55,7 @@ class GAApiController(ApiController):
 
     def action(self, logic_function, ver=None):
         try:
-            function = logic.get_action(logic_function)
+            function = tk.get_action(logic_function)
             side_effect_free = getattr(function, "side_effect_free", False)
             request_data = self._get_request_data(
                 try_url_params=side_effect_free

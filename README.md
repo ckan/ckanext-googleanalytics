@@ -2,7 +2,7 @@
 
 **Status:** Production
 
-**CKAN Version:** >= 2.7
+**CKAN Version:** >= 2.8
 
 A CKAN extension that both sends tracking data to Google Analytics and
 retrieves statistics from Google Analytics and inserts them into CKAN pages.
@@ -106,7 +106,7 @@ See `Googles' documentation<https://support.google.com/analytics/answer/1034342?
    set up the required database tables (of course, altering the
    ``--config`` option to point to your site config file):
 
-		paster initdb --config=../ckan/development.ini
+		ckan -c ../ckan/ckan.ini initdb
 
 3. Follow the steps in the *Authorization* section below.
 
@@ -160,9 +160,9 @@ Before ckanext-googleanalytics can retrieve statistics from Google Analytics, yo
 
 There are some very high-level functional tests that you can run using::
 
-	(pyenv)~/pyenv/src/ckan$ nosetests --ckan ../ckanext-googleanalytics/tests/
+   $ pip install -r dev-requirements.txt
+	$ pytest --ckan-ini=test.ini 
 
-(note -- that's run from the CKAN software root, not the extension root)
 
 ## Future
 

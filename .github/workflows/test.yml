@@ -19,7 +19,7 @@ jobs:
     needs: lint
     strategy:
       matrix:
-        ckan-version: ["2.10", 2.9, 2.9-py2, 2.8, 2.7]
+        ckan-version: ["2.10", 2.9, 2.9-py2, 2.8]
       fail-fast: false
 
     name: CKAN ${{ matrix.ckan-version }}
@@ -49,19 +49,27 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install requirements
       run: |
-        pip install -r dev-requirements.txt
+        pip install -r requirements.txt
         pip install -e .
         # Replace default path to CKAN core config file with the one on the container
         sed -i -e 's/use = config:.*/use = config:\/srv\/app\/src\/ckan\/test-core.ini/' test.ini
-    - name: Setup extension (CKAN >= 2.9)
-      if: ${{ matrix.ckan-version != '2.7' && matrix.ckan-version != '2.8' }}
+    - name: Setup extension (CKAN 2.10)
+      if: ${{ matrix.ckan-version == '2.10' }}
       run: |
+        pip install -r dev-requirements.txt
+        ckan -c test.ini db init
+        ckan -c test.ini db upgrade -p googleanalytics
+    - name: Setup extension (CKAN == 2.9)
+      if: ${{ matrix.ckan-version == '2.9' ||  matrix.ckan-version == '2.9-py2' }}
+      run: |
+        pip install -r dev-requirements-2.9.txt
         ckan -c test.ini db init
         ckan -c test.ini db upgrade -p googleanalytics
     - name: Setup extension (CKAN < 2.9)
-      if: ${{ matrix.ckan-version == '2.7' || matrix.ckan-version == '2.8' }}
+      if: ${{ matrix.ckan-version == '2.8' }}
       run: |
+        pip install -r dev-requirements-2.9.txt
         paster --plugin=ckan db init -c test.ini
         paster --plugin=ckanext-googleanalytics initdb -c test.ini
     - name: Run tests
-      run: pytest --ckan-ini=test.ini --disable-warnings ckanext/googleanalytics/tests
+      run: pytest --ckan-ini=test.ini --cov=ckanext.googleanalytics --disable-warnings ckanext/googleanalytics/tests

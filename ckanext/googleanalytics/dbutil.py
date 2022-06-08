@@ -78,36 +78,6 @@ def get_resource_visits_for_url(url):
     return count and count[0] or ""
 
 
-""" get_top_packages is broken, and needs to be rewritten to work with
-CKAN 2.*. This is because ckan.authz has been removed in CKAN 2.*
-
-See commit ffa86c010d5d25fa1881c6b915e48f3b44657612
-"""
-
-
-def get_top_packages(limit=20):
-    items = []
-    # caveat emptor: the query below will not filter out private
-    # or deleted datasets (TODO)
-    q = model.Session.query(model.Package)
-    connection = model.Session.connection()
-    package_stats = get_table("package_stats")
-    s = select(
-        [
-            package_stats.c.package_id,
-            package_stats.c.visits_recently,
-            package_stats.c.visits_ever,
-        ]
-    ).order_by(package_stats.c.visits_recently.desc())
-    res = connection.execute(s).fetchmany(limit)
-    for package_id, recent, ever in res:
-        item = q.filter(text("package.id = '%s'" % package_id))
-        if not item.count():
-            continue
-        items.append((item.first(), recent, ever))
-    return items
-
-
 def get_top_resources(limit=20):
     items = []
     connection = model.Session.connection()

@@ -49,7 +49,9 @@ def load(credentials, start_date):
     except TypeError as e:
         raise Exception("Unable to create a service: {0}".format(e))
     profile_id = get_profile_id(service)
-
+    if not profile_id:
+        tk.error_shout("Unknown Profile ID. `googleanalytics.profile_id` or `googleanalytics.account` must be specified")
+        raise click.Abort()
     if start_date:
         bulk_import(service, profile_id, start_date)
     else:

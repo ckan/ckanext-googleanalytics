@@ -99,8 +99,8 @@ def _post_analytics(
         if utils.config_measurement_protocol_client_id() and event_type == utils.EVENT_API:
             data_dict = utils.MeasurementProtocolData({
                 "event": event_type,
-                "object": event_type,
-                "function": event_type,
+                "object": request_obj_type,
+                "function": request_function,
                 "id": request_id,
                 "payload": request_payload,
             })

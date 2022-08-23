@@ -12,6 +12,7 @@ import ckan.views.api as api
 import ckan.views.resource as resource
 
 from ckan.common import g
+from . import utils
 
 CONFIG_HANDLER_PATH = "googleanalytics.download_handler"
 
@@ -30,7 +31,7 @@ def action(logic_function, ver=api.API_MAX_VERSION):
                 id = request_data["q"]
             if "query" in request_data:
                 id = request_data[u"query"]
-            _post_analytics(g.user, "CKAN API Request", logic_function, "", id)
+            _post_analytics(g.user, utils.EVENT_API, logic_function, "", id, request_data)
     except Exception as e:
         log.debug(e)
         pass
@@ -87,23 +88,34 @@ ga.add_url_rule(
 
 
 def _post_analytics(
-    user, event_type, request_obj_type, request_function, request_id
+        user, event_type,
+        request_obj_type, request_function,
+        request_id, request_payload=None
 ):
 
     from ckanext.googleanalytics.plugin import GoogleAnalyticsPlugin
 
     if tk.config.get("googleanalytics.id"):
-        data_dict = {
-            "v": 1,
-            "tid": tk.config.get("googleanalytics.id"),
-            "cid": hashlib.md5(six.ensure_binary(tk.c.user)).hexdigest(),
-            # customer id should be obfuscated
-            "t": "event",
-            "dh": tk.request.environ["HTTP_HOST"],
-            "dp": tk.request.environ["PATH_INFO"],
-            "dr": tk.request.environ.get("HTTP_REFERER", ""),
-            "ec": event_type,
-            "ea": request_obj_type + request_function,
-            "el": request_id,
-        }
+        if utils.config_measurement_protocol_client_id() and event_type == utils.EVENT_API:
+            data_dict = utils.MeasurementProtocolData({
+                "event": event_type,
+                "object": event_type,
+                "function": event_type,
+                "id": request_id,
+                "payload": request_payload,
+            })
+        else:
+            data_dict = utils.UniversalAnalyticsData({
+                "v": 1,
+                "tid": tk.config.get("googleanalytics.id"),
+                "cid": hashlib.md5(six.ensure_binary(tk.c.user)).hexdigest(),
+                # customer id should be obfuscated
+                "t": "event",
+                "dh": tk.request.environ["HTTP_HOST"],
+                "dp": tk.request.environ["PATH_INFO"],
+                "dr": tk.request.environ.get("HTTP_REFERER", ""),
+                "ec": event_type,
+                "ea": request_obj_type + request_function,
+                "el": request_id,
+            })
         GoogleAnalyticsPlugin.analytics_queue.put(data_dict)

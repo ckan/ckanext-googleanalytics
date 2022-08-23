@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from six.moves.urllib.parse import urlencode
 import logging
 import threading
-
-import requests
 
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 
 from ckan.exceptions import CkanConfigurationException, CkanVersionException
 
-from .. import helpers
+from .. import helpers, utils
 from ..logic import action, auth
 
 log = logging.getLogger(__name__)
@@ -39,16 +36,8 @@ class AnalyticsPostThread(threading.Thread):
     def run(self):
         while True:
             # grabs host from queue
-            data_dict = self.queue.get()
-
-            data = urlencode(data_dict)
-            log.debug("Sending API event to Google Analytics: " + data)
-            # send analytics
-            requests.post(
-                "http://www.google-analytics.com/collect",
-                data,
-                timeout=10,
-            )
+            data = self.queue.get()
+            utils.send_event(data)
             # signals to queue job is done
             self.queue.task_done()
 

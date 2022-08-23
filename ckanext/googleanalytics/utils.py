@@ -10,6 +10,22 @@ def config_id():
     return tk.config["googleanalytics.id"]
 
 
+def config_tracking_mode():
+    type_ = tk.config.get("googleanalytics.tracking_mode")
+    if type_:
+        return type_
+
+    id_ = config_id()
+
+    if id_.startswith("UA-"):
+        return "ga"
+
+    if id_.startswith("G-"):
+        return "gtag"
+
+    return "ga"
+
+
 def config_account():
     return tk.config.get("googleanalytics.account")
 

@@ -6,6 +6,7 @@ def get_helpers():
     return {
         "googleanalytics_header": googleanalytics_header,
         "googleanalytics_resource_prefix": googleanalytics_resource_prefix,
+        "googleanalytics_tracking_mode": googleanalytics_tracking_mode,
     }
 
 
@@ -37,3 +38,7 @@ def googleanalytics_header():
     return tk.render_snippet(
         "googleanalytics/snippets/googleanalytics_header.html", data
     )
+
+
+def googleanalytics_tracking_mode():
+    return utils.config_tracking_mode()

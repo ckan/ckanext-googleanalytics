@@ -1,0 +1,16 @@
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={{googleanalytics_id}}"></script>
+<script>
+ window.dataLayer = window.dataLayer || [];
+ function gtag(){dataLayer.push(arguments);}
+
+ gtag('set', 'linker', );
+ gtag('js', new Date());
+
+ gtag('config', '{{googleanalytics_id}}', {
+     anonymize_ip: true,
+     linker: {
+         domains: {{ googleanalytics_linked_domains|tojson }}
+     }
+ });
+</script>

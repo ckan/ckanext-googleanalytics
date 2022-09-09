@@ -12,7 +12,7 @@ from paste.util.multidict import MultiDict
 from ckan.controllers.api import ApiController
 
 import ckan.plugins.toolkit as tk
-from ckanext.googleanalytics import utils
+from ckanext.googleanalytics import config
 
 
 log = logging.getLogger("ckanext.googleanalytics")
@@ -32,7 +32,7 @@ class GAApiController(ApiController):
     ):
         data_dict = {
             "v": 1,
-            "tid": utils.config_id(),
+            "tid": config.tracking_id(),
             "cid": hashlib.md5(user).hexdigest(),
             # customer id should be obfuscated
             "t": "event",

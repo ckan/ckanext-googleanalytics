@@ -1,7 +1,7 @@
 from apiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 
-from . import utils
+from ckanext.googleanalytics import utils, config
 
 
 def init_service(credentials_file):
@@ -26,7 +26,7 @@ def get_profile_id(service):
     If not user configured, the first account is used
     """
 
-    profile_id = utils.config_profile_id()
+    profile_id = config.profile_id()
     if profile_id:
         return profile_id
 
@@ -34,8 +34,8 @@ def get_profile_id(service):
 
     if not accounts.get("items"):
         return None
-    accountName = utils.config_account()
-    webPropertyId = utils.config_id()
+    accountName = config.account()
+    webPropertyId = config.tracking_id()
     for acc in accounts.get("items"):
         if not accountName or acc.get("name") == accountName:
             accountId = acc.get("id")

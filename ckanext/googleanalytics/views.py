@@ -5,14 +5,13 @@ import logging
 import six
 
 from flask import Blueprint
-from werkzeug.utils import import_string
 
 import ckan.plugins.toolkit as tk
 import ckan.views.api as api
 import ckan.views.resource as resource
 
 from ckan.common import g
-from . import utils
+from ckanext.googleanalytics import utils, config
 
 CONFIG_HANDLER_PATH = "googleanalytics.download_handler"
 
@@ -54,12 +53,7 @@ ga.add_url_rule(
 
 
 def download(id, resource_id, filename=None, package_type="dataset"):
-    handler_path = tk.config.get(CONFIG_HANDLER_PATH)
-    if handler_path:
-        handler = import_string(handler_path, silent=True)
-    else:
-        handler = None
-        log.warning(("Missing {} config option.").format(CONFIG_HANDLER_PATH))
+    handler = config.download_handler()
     if not handler:
         log.debug("Use default CKAN callback for resource.download")
         handler = resource.download
@@ -95,8 +89,8 @@ def _post_analytics(
 
     from ckanext.googleanalytics.plugin import GoogleAnalyticsPlugin
 
-    if tk.config.get("googleanalytics.id"):
-        if utils.config_measurement_protocol_client_id() and event_type == utils.EVENT_API:
+    if config.tracking_id():
+        if config.measurement_protocol_client_id() and event_type == utils.EVENT_API:
             data_dict = utils.MeasurementProtocolData({
                 "event": event_type,
                 "object": request_obj_type,
@@ -107,7 +101,7 @@ def _post_analytics(
         else:
             data_dict = utils.UniversalAnalyticsData({
                 "v": 1,
-                "tid": tk.config.get("googleanalytics.id"),
+                "tid": config.tracking_id(),
                 "cid": hashlib.md5(six.ensure_binary(tk.c.user)).hexdigest(),
                 # customer id should be obfuscated
                 "t": "event",

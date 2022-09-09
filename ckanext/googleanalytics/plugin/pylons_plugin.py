@@ -6,7 +6,7 @@ import importlib
 
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as tk
-from ckanext.googleanalytics import utils
+from ckanext.googleanalytics import config
 
 from ckan.controllers.package import PackageController
 from routes.mapper import SubMapper
@@ -149,7 +149,7 @@ def _post_analytics(
 ):
     data_dict = {
         "v": 1,
-        "tid": utils.config_id(),
+        "tid": config.tracking_id(),
         "cid": hashlib.md5(tk.c.user).hexdigest(),
         # customer id should be obfuscated
         "t": "event",

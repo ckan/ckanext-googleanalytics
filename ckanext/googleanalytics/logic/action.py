@@ -4,7 +4,7 @@ import ckan.plugins.toolkit as tk
 from ckan.logic import validate
 
 from . import schema
-from .. import utils
+from .. import utils, config
 from ..model import PackageStats, ResourceStats
 from ..ga_auth import init_service, get_profile_id
 
@@ -56,7 +56,7 @@ def resource_stats_show(context, data_dict):
 def event_report(context, data_dict):
     tk.check_access("sysadmin", context, data_dict)
 
-    se = init_service(utils.config_credentials())
+    se = init_service(config.credentials())
     filters = []
     if "action" in data_dict:
         filters.append(

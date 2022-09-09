@@ -8,7 +8,7 @@ import logging
 import click
 import ckan.model as model
 
-from . import dbutil, utils
+from . import dbutil, config
 
 log = logging.getLogger(__name__)
 PACKAGE_URL = "/dataset/"  # XXX get from routes...
@@ -57,7 +57,7 @@ def load(credentials, start_date):
     else:
         query = "ga:pagePath=~%s,ga:pagePath=~%s" % (
             PACKAGE_URL,
-            utils.config_prefix(),
+            config.prefix(),
         )
         packages_data = get_ga_data(service, profile_id, query_filter=query)
         save_ga_data(packages_data)
@@ -125,7 +125,7 @@ def internal_save(packages_data, summary_date):
                 AND t2.tracking_date >= t1.tracking_date - %s
              ) + t1.count
              WHERE t1.running_total = 0 AND tracking_type = 'resource';"""
-    engine.execute(sql, utils.config_recent_view_days())
+    engine.execute(sql, config.recent_view_days())
 
     # update summary totals for pages
     sql = """UPDATE tracking_summary t1
@@ -145,7 +145,7 @@ def internal_save(packages_data, summary_date):
              WHERE t1.running_total = 0 AND tracking_type = 'page'
              AND t1.package_id IS NOT NULL
              AND t1.package_id != '~~not~found~~';"""
-    engine.execute(sql, utils.config_recent_view_days())
+    engine.execute(sql, config.recent_view_days())
 
 
 def bulk_import(service, profile_id, start_date=None):
@@ -196,7 +196,7 @@ def get_ga_data_new(service, profile_id, start_date=None, end_date=None):
     packages = {}
     query = "ga:pagePath=~%s,ga:pagePath=~%s" % (
         PACKAGE_URL,
-        utils.config_prefix(),
+        config.prefix(),
     )
     metrics = "ga:uniquePageviews"
     sort = "-ga:uniquePageviews"
@@ -246,7 +246,7 @@ def save_ga_data(packages_data):
         ever = visits.get("ever", 0)
         matches = RESOURCE_URL_REGEX.match(identifier)
         if matches:
-            resource_url = identifier[len(utils.config_prefix()):]
+            resource_url = identifier[len(config.prefix()):]
             resource = (
                 model.Session.query(model.Resource)
                 .autoflush(True)
@@ -318,7 +318,7 @@ def get_ga_data(service, profile_id, query_filter):
        {'identifier': {'recent':3, 'ever':6}}
     """
     now = datetime.datetime.now()
-    recent_date = now - datetime.timedelta(utils.config_recent_view_days())
+    recent_date = now - datetime.timedelta(config.recent_view_days())
     recent_date = recent_date.strftime("%Y-%m-%d")
     floor_date = datetime.date(2005, 1, 1)
     packages = {}

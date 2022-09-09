@@ -10,7 +10,7 @@ from pylons import config as pylonsconfig
 from ckan.lib.cli import CkanCommand
 import ckan.model as model
 
-from . import dbutil, utils
+from . import dbutil, config
 
 log = logging.getLogger("ckanext.googleanalytics")
 PACKAGE_URL = "/dataset/"  # XXX get from routes...
@@ -58,8 +58,8 @@ class LoadAnalytics(CkanCommand):
             self._load_config()
             self.CONFIG = pylonsconfig
 
-        self.resource_url_tag = utils.config_prefix()
-        self.recent_view_days = utils.config_recent_view_days()
+        self.resource_url_tag = config.prefix()
+        self.recent_view_days = config.recent_view_days()
 
         # funny dance we need to do to make sure we've got a
         # configured session

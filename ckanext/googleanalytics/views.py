@@ -11,7 +11,9 @@ import ckan.views.api as api
 import ckan.views.resource as resource
 
 from ckan.common import g
-from ckanext.googleanalytics import utils, config
+from ckan.plugins import PluginImplementations
+
+from ckanext.googleanalytics import utils, config, interfaces
 
 CONFIG_HANDLER_PATH = "googleanalytics.download_handler"
 
@@ -90,6 +92,7 @@ def _post_analytics(
     from ckanext.googleanalytics.plugin import GoogleAnalyticsPlugin
 
     if config.tracking_id():
+        breakpoint()
         if config.measurement_protocol_client_id() and event_type == utils.EVENT_API:
             data_dict = utils.MeasurementProtocolData({
                 "event": event_type,
@@ -112,4 +115,9 @@ def _post_analytics(
                 "ea": request_obj_type + request_function,
                 "el": request_id,
             })
+
+        for p in PluginImplementations(interfaces.IGoogleAnalytics):
+            if p.googleanalytics_skip_event(data_dict):
+                return
+
         GoogleAnalyticsPlugin.analytics_queue.put(data_dict)

@@ -3,8 +3,7 @@ import logging
 
 import requests
 from six.moves.urllib.parse import urlencode
-from ckan.plugins import PluginImplementations
-from ckanext.googleanalytics import config, interfaces
+from ckanext.googleanalytics import config
 
 
 log = logging.getLogger(__name__)
@@ -13,10 +12,6 @@ EVENT_API = "CKAN API Request"
 
 
 def send_event(data):
-    for p in PluginImplementations(interfaces.IGoogleAnalytics):
-        if p.googleanalytics_skip_event(data):
-            return
-
     if isinstance(data, MeasurementProtocolData):
         if data["event"] != EVENT_API:
             log.warning("Only API event supported by Measurement Protocol at the moment")

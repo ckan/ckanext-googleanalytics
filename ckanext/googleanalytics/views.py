@@ -92,7 +92,6 @@ def _post_analytics(
     from ckanext.googleanalytics.plugin import GoogleAnalyticsPlugin
 
     if config.tracking_id():
-        breakpoint()
         if config.measurement_protocol_client_id() and event_type == utils.EVENT_API:
             data_dict = utils.MeasurementProtocolData({
                 "event": event_type,

@@ -58,12 +58,6 @@ def measurement_protocol_client_secret():
     return tk.config.get("googleanalytics.measurement_protocol.client_secret")
 
 
-def measurement_protocol_api_whitelist():
-    return tk.aslist(
-        tk.config.get("googleanalytics.measurement_protocol.api_tracking_whitelist")
-    )
-
-
 def account():
     return tk.config.get("googleanalytics.account")
 

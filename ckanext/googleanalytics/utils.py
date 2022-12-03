@@ -3,7 +3,9 @@ import logging
 
 import requests
 from six.moves.urllib.parse import urlencode
-from ckanext.googleanalytics import config
+from ckan.plugins import PluginImplementations
+from ckanext.googleanalytics import config, interfaces
+
 
 log = logging.getLogger(__name__)
 
@@ -11,6 +13,10 @@ EVENT_API = "CKAN API Request"
 
 
 def send_event(data):
+    for p in PluginImplementations(interfaces.IGoogleAnalytics):
+        if p.googleanalytics_skip_event(data):
+            return
+
     if isinstance(data, MeasurementProtocolData):
         if data["event"] != EVENT_API:
             log.warning("Only API event supported by Measurement Protocol at the moment")
@@ -31,13 +37,6 @@ class SafeJSONEncoder(json.JSONEncoder):
 
 
 def _mp_api_handler(data_dict):
-    whitelist = set(config.measurement_protocol_api_whitelist())
-    if whitelist and data_dict["action"] not in whitelist:
-        log.debug(
-            "Skip sending %s API action to Google Analytics because it is not whitelisted",
-            data_dict["action"]
-        )
-        return
 
     log.debug(
         "Sending API event to Google Analytics using the Measurement Protocol: %s",

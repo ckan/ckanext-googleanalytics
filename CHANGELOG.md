@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.2](https://github.com/ckan/ckanext-googleanalytics/compare/v2.2.1...v2.2.2) (2023-03-03)
+
+
+### Bug Fixes
+
+* add config declaration to manifest ([2a01b9e](https://github.com/ckan/ckanext-googleanalytics/commit/2a01b9e35460bf15e3b812efc49af6e2712c88b5))
+
 ### [2.2.1](https://github.com/ckan/ckanext-googleanalytics/compare/v2.2.0...v2.2.1) (2023-01-17)
 
 

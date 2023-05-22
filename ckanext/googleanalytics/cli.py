@@ -7,6 +7,7 @@ import re
 import logging
 import click
 import ckan.model as model
+from ckan.plugins import toolkit as tk
 
 from . import dbutil, config
 
@@ -36,19 +37,19 @@ def init():
 
 
 @googleanalytics.command(short_help=u"Load data from Google Analytics API")
-@click.argument("credentials", type=click.Path(exists=True))
+@click.argument("credentials", type=click.Path(exists=True), required=False)
 @click.option("-s", "--start-date", required=False)
 def load(credentials, start_date):
     """Parse data from Google Analytics API and store it
     in a local database
     """
-    from .ga_auth import init_service, get_profile_id
+    from .ga_auth import init_service
 
     try:
-        service = init_service(credentials)
+        service = init_service()
     except TypeError as e:
         raise Exception("Unable to create a service: {0}".format(e))
-    profile_id = get_profile_id(service)
+    profile_id = tk.config.get("googleanalytics.profile_id")
     if not profile_id:
         tk.error_shout("Unknown Profile ID. `googleanalytics.profile_id` or `googleanalytics.account` must be specified")
         raise click.Abort()

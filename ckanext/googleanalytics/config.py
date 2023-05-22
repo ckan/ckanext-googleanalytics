@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def tracking_id():
-    return tk.config["googleanalytics.id"]
+    return tk.config.get("googleanalytics.id")
 
 
 def download_handler():

@@ -17,18 +17,17 @@ from google.analytics.admin import AnalyticsAdminServiceClient
 from google_auth_oauthlib import flow
 
 
-def init_service():
+def init_service(credentials_file):
     """Get a service that communicates to a Google API."""
-    # scope = ["https://www.googleapis.com/auth/analytics.readonly"]
-    # credentials = ServiceAccountCredentials.from_json_keyfile_name(
-    #     credentials_file, scopes=scope
-    # )
-    breakpoint()
+    scope = ["https://www.googleapis.com/auth/analytics.readonly"]
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        credentials_file, scopes=scope
+    )
+    return build("analytics", "v3", credentials=credentials)
+
+def get_ga4_client():
     credentials_json_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
     return BetaAnalyticsDataClient.from_service_account_json(credentials_json_path)
-
-    #return build("analytics", "v3", credentials=credentials)
-
 
 def get_profile_id(service):
     """Get static profile ID or fetch one from the service.
@@ -45,7 +44,6 @@ def get_profile_id(service):
     profile_id = config.profile_id()
     if profile_id:
         return profile_id
-    breakpoint()
     client = AnalyticsAdminServiceClient()
     accounts = client.list_accounts()
 

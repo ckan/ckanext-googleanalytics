@@ -63,7 +63,7 @@ def account():
 
 
 def profile_id():
-    return tk.config.get("googleanalytics.profile_id")
+    return tk.config.get("googleanalytics.id")
 
 
 def credentials():

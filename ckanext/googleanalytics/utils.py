@@ -52,7 +52,6 @@ def _mp_api_handler(data_dict):
             }]
         }, cls=SafeJSONEncoder)
     )
-    # breakpoint()
     if resp.status_code >= 300:
         log.error("Cannot post event: %s", resp)
 

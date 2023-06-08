@@ -14,6 +14,7 @@ from . import dbutil, config
 log = logging.getLogger(__name__)
 PACKAGE_URL = "/dataset/"  # XXX get from routes...
 
+DATASET_URL_REGEX =  re.compile("/dataset/([a-z0-9-_]+)")
 RESOURCE_URL_REGEX = re.compile("/dataset/[a-z0-9-_]+/resource/([a-z0-9-_]+)")
 DATASET_EDIT_REGEX = re.compile("/dataset/edit/([a-z0-9-_]+)")
 
@@ -50,15 +51,17 @@ def load(credentials, ga4, start_date):
         service = get_ga4_client() if ga4 else init_service(credentials)
     except TypeError as e:
         raise Exception("Unable to create a service: {0}".format(e))
-    profile_id = tk.config.get("googleanalytics.id") if ga4 else get_profile_id(service)
+    profile_id = tk.config.get("googleanalytics.property_id") if ga4 else get_profile_id(service)
     if not profile_id:
-        tk.error_shout("Unknown Profile ID. `googleanalytics.id` or `googleanalytics.account` must be specified")
+        tk.error_shout("Unknown Profile ID. `googleanalytics.id`,\
+                       `googleanalytics.property_id` or \
+                       `googleanalytics.account` must be specified")
         raise click.Abort()
     if start_date:
         bulk_import(service, profile_id, start_date, ga4)
     elif ga4:
-        packages_data = get_ga4_data(service, profile_id, start_date)
-        save_ga_data(packages_data)
+        packages_data = get_ga4_data(service, profile_id)
+        save_ga4_data(packages_data)
         log.info("Saved %s records from google" % len(packages_data))
     else:
         query = "ga:pagePath=~%s,ga:pagePath=~%s" % (
@@ -200,8 +203,6 @@ def get_ga_data_new(service, profile_id, start_date=None, end_date=None, ga4=Fal
     end_date = end_date.strftime("%Y-%m-%d")
 
     packages = {}
-    if ga4:
-        return get_ga4_data(service, profile_id, start_date, end_date)
     query = "ga:pagePath=~%s,ga:pagePath=~%s" % (
         PACKAGE_URL,
         config.prefix(),
@@ -247,27 +248,24 @@ def get_ga_data_new(service, profile_id, start_date=None, end_date=None, ga4=Fal
     return packages
 
 
-def get_ga4_data(service, profile_id, start_date, end_date=None):
-    """Get raw data from Google Analytics 4 for packages"""
-    from google.analytics.data_v1beta.types import (
-        DateRange,
-        Dimension,
-        Metric,
-        RunReportRequest,
-        )
-    # profile_id = 373459712
-    if not start_date:
-        start_date = datetime.date.today()
-    if not end_date:
-        end_date = datetime.date.today()
-    request = RunReportRequest(
-        property=f"properties/{profile_id}",
-        dimensions=[Dimension(name="pagePathPlusQueryString")],
-        metrics=[Metric(name="screenPageViews")],
-        date_ranges=[DateRange(start_date=start_date.strftime('%d/%m/%Y'), end_date=end_date.strftime('%d/%m/%Y'))],
-    )
-    response = service.run_report(request)
-    print(response)
+def save_ga4_data(packages):
+    for identifier, visits in list(packages.items()):
+        recently = visits.get("recent", 0)
+        ever = visits.get("ever", 0)
+        package_name = identifier[len(PACKAGE_URL):]
+        # matches = DATASET_URL_REGEX.match(identifier)
+        # package_name = matches[0][len(PACKAGE_URL):]
+        if "/" in package_name:
+            log.warning("%s not a valid package name" % package_name)
+            continue
+        item = model.Package.by_name(package_name)
+        if not item:
+            log.warning("Couldn't find package %s" % package_name)
+            continue
+        dbutil.update_package_visits(item.id, recently, ever)
+        log.info("Updated %s with %s visits" % (item.id, visits))
+    model.Session.commit()
+
 
 def save_ga_data(packages_data):
     """Save tuples of packages_data to the database"""
@@ -302,33 +300,38 @@ def save_ga_data(packages_data):
     model.Session.commit()
 
 
-def ga4_query(service, profile_id, from_date=None, metrics=None):
+def ga4_query(service, profile_id, from_date=None):
     """Execute a query against Google Analytics 4"""
     from google.analytics.data_v1beta.types import (
         DateRange,
         Dimension,
         Metric,
         RunReportRequest,
+        FilterExpression,
+        Filter
         )
-    # profile_id = 373459712
     now = datetime.datetime.now()
     to_date = now.strftime("%Y-%m-%d")
     if isinstance(from_date, datetime.date):
         from_date = from_date.strftime("%Y-%m-%d")
 
-    if not metrics:
-        metrics = [
-            Metric(name="sessions"),
-            Metric(name="users"),
-        ]
+    metrics = [
+        Metric(name="engagedSessions"),
+    ]
     request = RunReportRequest(
-        property=f"properties/{profile_id}",
+        property="properties/{0}".format(profile_id),
         dimensions=[Dimension(name="pagePathPlusQueryString")],
+        dimension_filter=FilterExpression(
+            filter=Filter(
+                field_name="pagePathPlusQueryString",
+                string_filter=Filter.StringFilter(
+                    value="/dataset/", match_type=Filter.StringFilter.MatchType.BEGINS_WITH)
+            )
+        ),
         metrics=metrics,
         date_ranges=[DateRange(start_date=from_date, end_date=to_date)],
     )
     response = service.run_report(request)
-    print(response)
     return response
 
 
@@ -367,6 +370,33 @@ def ga_query(
         .execute()
     )
     return results
+
+
+def get_ga4_data(service, profile_id):
+    """Get raw data from Google Analytics 4 for packages"""
+
+    now = datetime.datetime.now()
+    recent_date = now - datetime.timedelta(config.recent_view_days())
+    recent_date = recent_date.strftime("%Y-%m-%d")
+    floor_date = datetime.date(2005, 1, 1)
+    packages = {}
+    dates = {"recent": recent_date, "ever": floor_date}
+    for date_name, date in list(dates.items()):
+
+        response = ga4_query(
+            service,
+            profile_id,
+            from_date=date)
+        for row in response.rows:
+            package = row.dimension_values[0].value
+            count = row.metric_values[0].value
+            val = 0 
+            if package in packages and date_name in packages[package]:
+                val += packages[package][date_name]
+            packages.setdefault(package, {})[date_name] = (
+                val + int(count)
+            )
+    return packages
 
 
 def get_ga_data(service, profile_id, query_filter):

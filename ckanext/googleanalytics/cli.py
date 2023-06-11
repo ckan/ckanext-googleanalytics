@@ -253,17 +253,31 @@ def save_ga4_data(packages):
         recently = visits.get("recent", 0)
         ever = visits.get("ever", 0)
         package_name = identifier[len(PACKAGE_URL):]
-        # matches = DATASET_URL_REGEX.match(identifier)
-        # package_name = matches[0][len(PACKAGE_URL):]
-        if "/" in package_name:
-            log.warning("%s not a valid package name" % package_name)
-            continue
-        item = model.Package.by_name(package_name)
-        if not item:
-            log.warning("Couldn't find package %s" % package_name)
-            continue
-        dbutil.update_package_visits(item.id, recently, ever)
-        log.info("Updated %s with %s visits" % (item.id, visits))
+        matches = RESOURCE_URL_REGEX.match(identifier)
+        if matches:
+            resource_url = matches[0]
+            resource = model.Resource.get(resource_url)
+            resource = (
+                model.Session.query(model.Resource)
+                .autoflush(True)
+                .filter_by(id=matches.group(1))
+                .first()
+            )
+            if not resource:
+                log.warning("Couldn't find resource %s" % resource_url)
+                continue
+            dbutil.update_resource_visits(resource.id, recently, ever)
+            log.info("Updated %s with %s visits" % (resource.id, visits))
+        else:
+            if "/" in package_name:
+                log.warning("%s not a valid package name" % package_name)
+                continue
+            item = model.Package.by_name(package_name)
+            if not item:
+                log.warning("Couldn't find package %s" % package_name)
+                continue
+            dbutil.update_package_visits(item.id, recently, ever)
+            log.info("Updated %s with %s visits" % (item.id, visits))
     model.Session.commit()
 
 

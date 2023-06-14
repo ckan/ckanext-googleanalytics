@@ -7,8 +7,9 @@ groups:
         placeholder: UA-000000000-1
         validators: not_empty
         description: |
-          Google tag ID(`G-*`) for Google Analytics 4 properties or the
-          Tracking ID(`UA-*`) for Universal Analytics properties.
+          Google tag ID(`G-*`) for Google Analytics 4, the Tracking ID(`UA-*`)
+          for Universal Analytics, or container ID(`GTM-*`) for Google Tag
+          Manager.
 
       - key: googleanalytics.download_handler
         default: ckan.views.resource:download
@@ -22,13 +23,14 @@ groups:
         example: gtag
         description: |
           Defines the type of code snippet embedded into the page. Can be set
-          to either `ga`(enables `googleanalytics.js`) or `gtag`(enables
-          `gtag.js`). The plugin will check `googleanalytics.id` and set
-          appropriate value depending on the prefix: `G-` enables `gtag`, while
-          `UA-` enables `ga` mode.
+          to `ga`(enables `googleanalytics.js`), `gtag`(enables `gtag.js`), or
+          `gtm`(enables Google Tag Manager). The plugin will check
+          `googleanalytics.id` and set appropriate value depending on the
+          prefix: `G-` enables `gtag`, `UA-` enables `ga` mode, and `GTM-`
+          enables Google Tag Manager.
 
           Use this option only if you know better which snippet you need. In
-          future, after dropping UniversalAnalytics, this option will be
+          future, after dropping UniversalAnalytics, this option may be
           removed.
 
       - key: googleanalytics.account

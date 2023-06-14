@@ -5,7 +5,9 @@ from werkzeug.utils import import_string
 
 import ckan.plugins.toolkit as tk
 
+CONFIG_TRACKING_ID = "googleanalytics.id"
 CONFIG_HANDLER_PATH = "googleanalytics.download_handler"
+CONFIG_TRACKING_MODE = "googleanalytics.tracking_mode"
 
 DEFAULT_RESOURCE_URL_TAG = "/downloads/"
 DEFAULT_RECENT_VIEW_DAYS = 14
@@ -30,10 +32,9 @@ def download_handler():
     return handler
 
 
-
 def tracking_mode():
     # type: () -> Literal["ga", "gtag", "gtm"]
-    type_ = tk.config.get("googleanalytics.tracking_mode")
+    type_ = tk.config.get(CONFIG_TRACKING_MODE)
     if type_:
         return type_
 
@@ -73,6 +74,13 @@ def measurement_protocol_client_id():
 
 def measurement_protocol_client_secret():
     return tk.config.get("googleanalytics.measurement_protocol.client_secret")
+
+
+def measurement_protocol_track_downloads():
+    # type: () -> bool
+    return tk.asbool(
+        tk.config.get("googleanalytics.measurement_protocol.track_downloads")
+    )
 
 
 def account():

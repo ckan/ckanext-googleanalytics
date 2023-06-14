@@ -1,0 +1,16 @@
+{% ckan_extends %}
+
+{% block page %}
+    {% block googleanalytics_body_script %}
+        {% if h.googleanalytics_tracking_mode() == "gtm" %}
+            {% with id = h.googleanalytics_id() %}
+                <!-- Google Tag Manager (noscript) -->
+                <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ id }}"
+                                  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+                <!-- End Google Tag Manager (noscript) -->
+            {% endwith %}
+        {% endif %}
+    {% endblock %}
+
+    {{ super() }}
+{% endblock page %}

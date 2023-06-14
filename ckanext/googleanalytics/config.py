@@ -32,7 +32,7 @@ def download_handler():
 
 
 def tracking_mode():
-    # type: () -> Literal["ga", "gtag"]
+    # type: () -> Literal["ga", "gtag", "gtm"]
     type_ = tk.config.get("googleanalytics.tracking_mode")
     if type_:
         return type_
@@ -44,6 +44,10 @@ def tracking_mode():
 
     if id_.startswith("G-"):
         return "gtag"
+
+    if id_.startswith("GTM-"):
+        return "gtm"
+
 
     return "ga"
 

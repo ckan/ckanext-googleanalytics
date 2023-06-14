@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.3](https://github.com/ckan/ckanext-googleanalytics/compare/v2.2.2...v2.2.3) (2023-06-14)
+
+
+### Features
+
+* add blocks to gtag snippet ([913908f](https://github.com/ckan/ckanext-googleanalytics/commit/913908fc611f59be80322238953edcc84e3b0f06))
+
+
+### Bug Fixes
+
+* report empty googleanalytics.id ([cf75e57](https://github.com/ckan/ckanext-googleanalytics/commit/cf75e577cb70fc9c5b0be270c07fb68376646c46))
+
 ### [2.2.2](https://github.com/ckan/ckanext-googleanalytics/compare/v2.2.1...v2.2.2) (2023-03-03)
 
 

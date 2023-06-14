@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def tracking_id():
+    # type: () -> str
     return tk.config["googleanalytics.id"]
 
 
@@ -31,6 +32,7 @@ def download_handler():
 
 
 def tracking_mode():
+    # type: () -> Literal["ga", "gtag"]
     type_ = tk.config.get("googleanalytics.tracking_mode")
     if type_:
         return type_
@@ -47,10 +49,21 @@ def tracking_mode():
 
 
 def measurement_id():
+    # type: () -> str
+    """Set the MeasurementID for tracking API actions. By default,
+    `googleanalytics.id` is used.
+
+    Use this option during migration from Universal Analytics, to track API
+    requests using Measurement Protocol, while tracking browser event using
+    Universal Analytics.
+
+    Requires `googleanalytics.measurement_protocol.client_id`.
+    """
     return tk.config.get("googleanalytics.measurement_protocol.id") or tracking_id()
 
 
 def measurement_protocol_client_id():
+    # type: () -> str | None
     return tk.config.get("googleanalytics.measurement_protocol.client_id")
 
 

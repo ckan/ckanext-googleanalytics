@@ -15,8 +15,6 @@ from ckan.plugins import PluginImplementations
 
 from ckanext.googleanalytics import utils, config, interfaces
 
-CONFIG_HANDLER_PATH = "googleanalytics.download_handler"
-
 log = logging.getLogger(__name__)
 ga = Blueprint("google_analytics", "google_analytics")
 

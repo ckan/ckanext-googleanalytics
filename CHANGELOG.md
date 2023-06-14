@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/ckan/ckanext-googleanalytics/compare/v2.2.3...v2.3.0) (2023-06-14)
+
+
+### Features
+
+* add GTM tracking support ([5268985](https://github.com/ckan/ckanext-googleanalytics/commit/52689855758ad1368bd8ae8a785443761ba0abe4))
+* track downloads via MeasurementProtocol ([acb7a81](https://github.com/ckan/ckanext-googleanalytics/commit/acb7a81bc43f7c0eef94f78a2a605dfb8a8db20b))
+
 ### [2.2.3](https://github.com/ckan/ckanext-googleanalytics/compare/v2.2.2...v2.2.3) (2023-06-14)
 
 

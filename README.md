@@ -88,7 +88,7 @@ retrieves statistics from Google Analytics and inserts them into CKAN pages.
    function must be called instead of `ckan.views.resource:download`
    via `ckanext.googleanalytics.download_handler` config variable. For ckanext-cloudstorage you can use:
 
-		ckanext.googleanalytics.download_handler = ckanext.cloudstorage.views:download
+		googleanalytics.download_handler = ckanext.cloudstorage.views:download
 
 # Domain Linking
 

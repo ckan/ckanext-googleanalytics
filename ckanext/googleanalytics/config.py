@@ -49,7 +49,6 @@ def tracking_mode():
     if id_.startswith("GTM-"):
         return "gtm"
 
-
     return "ga"
 
 

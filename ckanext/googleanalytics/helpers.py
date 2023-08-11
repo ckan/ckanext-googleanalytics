@@ -45,5 +45,6 @@ def googleanalytics_header():
 def googleanalytics_tracking_mode():
     return config.tracking_mode()
 
+
 def googleanalytics_id():
     return config.tracking_id()

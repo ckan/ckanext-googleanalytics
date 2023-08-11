@@ -68,7 +68,7 @@ def _mp_event(event):
         data=json.dumps({
             "client_id": config.measurement_protocol_client_id(),
             "non_personalized_ads": False,
-            "events":[event]
+            "events": [event]
         }, cls=SafeJSONEncoder)
     )
 

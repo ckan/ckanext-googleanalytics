@@ -4,7 +4,7 @@ import ckan.plugins.toolkit as tk
 from ckan.logic import validate
 
 from . import schema
-from .. import utils, config
+from .. import config
 from ..model import PackageStats, ResourceStats
 from ..ga_auth import init_service, get_profile_id
 

@@ -7,6 +7,7 @@ import re
 import logging
 import click
 import ckan.model as model
+import ckan.plugins.toolkit as tk
 
 from . import dbutil, config
 

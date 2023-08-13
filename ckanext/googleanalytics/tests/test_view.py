@@ -3,6 +3,7 @@ import pytest
 import ckan.plugins.toolkit as tk
 from ckanext.googleanalytics import config
 
+
 def _render_header(mode, tracking_id):
     return tk.render_snippet("googleanalytics/snippets/_{}.html".format(mode), {
         "googleanalytics_id": tracking_id,

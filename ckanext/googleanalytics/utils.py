@@ -81,7 +81,7 @@ def _ga_handler(data_dict):
     log.debug("Sending API event to Google Analytics: %s", data)
 
     requests.post(
-        "http://www.google-analytics.com/collect",
+        "https://www.google-analytics.com/collect",
         data,
         timeout=10,
     )

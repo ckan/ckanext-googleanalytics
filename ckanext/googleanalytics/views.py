@@ -101,6 +101,7 @@ def _post_analytics(
                 "function": request_function,
                 "id": request_id,
                 "payload": request_payload,
+                "user_id": hashlib.md5(six.ensure_binary(tk.c.user)).hexdigest()
             })
 
         else:

@@ -18,11 +18,11 @@ def send_event(data):
             return _mp_api_handler({
                 "action": data["object"],
                 "payload": data["payload"],
-            })
+            }, user_id=data["user_id"])
 
         if data["event"] == EVENT_DOWNLOAD:
             return _mp_download_handler({"payload": {
-                "resource_id": data["id"],
+                "resource_id": data["id"]
             }})
 
         log.warning("Only API and Download events supported by Measurement Protocol at the moment")
@@ -36,7 +36,7 @@ class SafeJSONEncoder(json.JSONEncoder):
         return None
 
 
-def _mp_api_handler(data_dict):
+def _mp_api_handler(data_dict, user_id=None):
     log.debug(
         "Sending API event to Google Analytics using the Measurement Protocol: %s",
         data_dict
@@ -44,7 +44,7 @@ def _mp_api_handler(data_dict):
     _mp_event({
         "name": data_dict["action"],
         "params": data_dict["payload"]
-    })
+    }, user_id=user_id)
 
 
 def _mp_download_handler(data_dict):
@@ -58,18 +58,23 @@ def _mp_download_handler(data_dict):
     })
 
 
-def _mp_event(event):
+def _mp_event(event, user_id=None):
+    data = {
+            "client_id": config.measurement_protocol_client_id(),
+            "non_personalized_ads": False,
+            "events": [event]
+    }
+
+    if user_id:
+        data["user_id"] = user_id
+
     resp = requests.post(
         "https://www.google-analytics.com/mp/collect",
         params={
             "api_secret": config.measurement_protocol_client_secret(),
-            "measurement_id": config.measurement_id()
+            "measurement_id": config.measurement_id(),
         },
-        data=json.dumps({
-            "client_id": config.measurement_protocol_client_id(),
-            "non_personalized_ads": False,
-            "events": [event]
-        }, cls=SafeJSONEncoder)
+        data=json.dumps(data, cls=SafeJSONEncoder)
     )
 
     if resp.status_code >= 300:

@@ -54,22 +54,16 @@ jobs:
         # Replace default path to CKAN core config file with the one on the container
         sed -i -e 's/use = config:.*/use = config:\/srv\/app\/src\/ckan\/test-core.ini/' test.ini
     - name: Setup extension (CKAN 2.10)
-      if: ${{ matrix.ckan-version == '2.10' }}
+      if: ${{ matrix.ckan-version >= '2.10' }}
       run: |
         pip install -r dev-requirements.txt
         ckan -c test.ini db init
         ckan -c test.ini db upgrade -p googleanalytics
     - name: Setup extension (CKAN == 2.9)
-      if: ${{ matrix.ckan-version == '2.9' ||  matrix.ckan-version == '2.9-py2' }}
+      if: ${{ matrix.ckan-version == '2.9' }}
       run: |
         pip install -r dev-requirements-2.9.txt
         ckan -c test.ini db init
         ckan -c test.ini db upgrade -p googleanalytics
-    - name: Setup extension (CKAN < 2.9)
-      if: ${{ matrix.ckan-version == '2.8' }}
-      run: |
-        pip install -r dev-requirements-2.9.txt
-        paster --plugin=ckan db init -c test.ini
-        paster --plugin=ckanext-googleanalytics initdb -c test.ini
     - name: Run tests
       run: pytest --ckan-ini=test.ini --cov=ckanext.googleanalytics --disable-warnings ckanext/googleanalytics/tests

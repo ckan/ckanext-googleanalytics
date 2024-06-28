@@ -1,5 +1,5 @@
 import pytest
-
+import six
 import ckan.plugins.toolkit as tk
 from ckanext.googleanalytics import config
 
@@ -23,4 +23,4 @@ class TestCodeSnippets:
         monkeypatch.setitem(ckan_config, config.CONFIG_TRACKING_MODE, mode)
         snippet = _render_header(mode, tracking_id)
         resp = app.get("/about")
-        assert snippet in resp.body
+        assert six.ensure_str(snippet) in resp

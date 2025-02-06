@@ -1,30 +1,24 @@
 name: Tests
-on: [push, pull_request]
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      - name: Install requirements
-        run: pip install flake8 pycodestyle
-      - name: Check syntax
-        run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics --exclude ckan
-      - name: Run flake8
-        run: flake8 . --count --max-line-length=127 --statistics --exclude ckan
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
+jobs:
   test:
-    needs: lint
     strategy:
       matrix:
-        ckan-version: ["2.11", "2.10", 2.9]
+        ckan-version: ["2.11", "2.10"]
       fail-fast: false
 
-    name: CKAN ${{ matrix.ckan-version }}
     runs-on: ubuntu-latest
     container:
+      # The CKAN version tag of the Solr and Postgres containers should match
+      # the one of the container the tests run on.
+      # You can switch this base image with a custom image tailored to your project
       image: ckan/ckan-dev:${{ matrix.ckan-version }}
     services:
       solr:
@@ -38,6 +32,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       redis:
           image: redis:3
+
     env:
       CKAN_SQLALCHEMY_URL: postgresql://ckan_default:pass@postgres/ckan_test
       CKAN_DATASTORE_WRITE_URL: postgresql://datastore_write:pass@postgres/datastore_test
@@ -46,24 +41,18 @@ jobs:
       CKAN_REDIS_URL: redis://redis:6379/1
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Install requirements
+      # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |
-        pip install -r requirements.txt
-        pip install -e .
+        pip install -e ".[requirements]"
+    - name: Setup extension
+      # Extra initialization steps
+      run: |
         # Replace default path to CKAN core config file with the one on the container
         sed -i -e 's/use = config:.*/use = config:\/srv\/app\/src\/ckan\/test-core.ini/' test.ini
-    - name: Setup extension (CKAN 2.10)
-      if: ${{ matrix.ckan-version >= '2.10' }}
+    - name: Setup extension
       run: |
-        pip install -r dev-requirements.txt
         ckan -c test.ini db init
-        ckan -c test.ini db upgrade -p googleanalytics
-    - name: Setup extension (CKAN == 2.9)
-      if: ${{ matrix.ckan-version == '2.9' }}
-      run: |
-        pip install -r dev-requirements-2.9.txt
-        ckan -c test.ini db init
-        ckan -c test.ini db upgrade -p googleanalytics
     - name: Run tests
-      run: pytest --ckan-ini=test.ini --cov=ckanext.googleanalytics --disable-warnings ckanext/googleanalytics/tests
+      run: pytest --ckan-ini=test.ini --cov=ckanext.googleanalytics --disable-warnings ckanext

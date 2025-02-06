@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import
+import queue
 
 import logging
 import threading
@@ -7,19 +7,16 @@ import threading
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 
-from ckan.exceptions import CkanConfigurationException, CkanVersionException
+from ckan.exceptions import CkanConfigurationException
+from ckanext.googleanalytics.views import ga
+from ckanext.googleanalytics.cli import get_commands
 
-from .. import helpers, utils
-from ..logic import action, auth
+from ckanext.googleanalytics import helpers, utils
+from ckanext.googleanalytics.logic import action, auth
 
 log = logging.getLogger(__name__)
 
-try:
-    tk.requires_ckan_version("2.9")
-except CkanVersionException:
-    from ckanext.googleanalytics.plugin.pylons_plugin import GAMixinPlugin
-else:
-    from ckanext.googleanalytics.plugin.flask_plugin import GAMixinPlugin
+
 
 
 class GoogleAnalyticsException(CkanConfigurationException):
@@ -42,13 +39,27 @@ class AnalyticsPostThread(threading.Thread):
             self.queue.task_done()
 
 
-class GoogleAnalyticsPlugin(GAMixinPlugin, p.SingletonPlugin):
+class GoogleAnalyticsPlugin(p.SingletonPlugin):
+    p.implements(p.IBlueprint)
+    p.implements(p.IClick)
 
     p.implements(p.IConfigurable, inherit=True)
     p.implements(p.IConfigurer, inherit=True)
     p.implements(p.ITemplateHelpers)
     p.implements(p.IActions)
     p.implements(p.IAuthFunctions)
+
+    analytics_queue = queue.Queue()
+
+    # IBlueprint
+
+    def get_blueprint(self):
+        return [ga]
+
+    # IClick
+
+    def get_commands(self):
+        return get_commands()
 
     def get_auth_functions(self):
         return auth.get_auth()
@@ -64,8 +75,8 @@ class GoogleAnalyticsPlugin(GAMixinPlugin, p.SingletonPlugin):
             t.start()
 
     def update_config(self, config):
-        tk.add_template_directory(config, "../templates")
-        tk.add_resource("../assets", "ckanext-googleanalytics")
+        tk.add_template_directory(config, "templates")
+        tk.add_resource("assets", "ckanext-googleanalytics")
 
         if not config.get("googleanalytics.id"):
             msg = "Missing or empty googleanalytics.id in config"

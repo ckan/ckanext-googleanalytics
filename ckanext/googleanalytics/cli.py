@@ -29,11 +29,8 @@ def googleanalytics():
 
 @googleanalytics.command()
 def init():
-    """Initialise the local stats database tables"""
-    model.Session.remove()
-    model.Session.configure(bind=model.meta.engine)
-    dbutil.init_tables()
-    log.info("Set up statistics tables in main database")
+    """DEPRECATED. Initialise the local stats database tables"""
+    tk.error_shout("Use CKAN DB migrations: ckan db pending-migrations --apply")
 
 
 @googleanalytics.command(short_help=u"Load data from Google Analytics API")

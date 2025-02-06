@@ -1,4 +1,206 @@
-[tool.black]
-line-length = 79
-preview = true
+[build-system]
+requires = [ "setuptools>=61.2",]
+build-backend = "setuptools.build_meta"
 
+[project]
+name = "ckanext-googleanalytics"
+version = "2.5.0"
+description = "Add GA tracking and reporting to CKAN instance"
+classifiers = [
+            "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
+]
+keywords = [ "CKAN", "googleanalytics", "tracking"]
+requires-python = ">= 3.7"
+dependencies = [ "google-api-python-client" ]
+
+[[project.authors]]
+name = "Seb Bacon"
+email = "seb.bacon@gmail.com"
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.license]
+text = "AGPL"
+
+[project.urls]
+Homepage = "https://github.com/ckan/ckanext-googleanalytics"
+
+[project.optional-dependencies]
+requirements = [ "gdata>=2.0.0", "google-api-python-client>=1.6.1, <1.7.0", "pyOpenSSL>=16.2.0", "rsa>=4.7" ]
+
+[project.entry-points."ckan.plugins"]
+googleanalytics = "ckanext.googleanalytics.plugin:GoogleAnalyticsPlugin"
+
+[project.entry-points."babel.extractors"]
+ckan = "ckan.lib.extract:extract_ckan"
+
+[tool.setuptools.packages]
+find = {}
+
+
+[tool.ruff]
+target-version = "py38"
+
+[tool.ruff.lint]
+select = [
+       # "ANN0", # type annotations for function arguments
+       # "B",  # likely bugs and design problems
+       # "BLE",  # do not catch blind exception
+       # "C4",  # better list/set/dict comprehensions
+       # "C90",  # check McCabe complexity
+       # "DTZ", # enforce timezone in date objects
+       # "E",  # pycodestyle error
+       # "W",  # pycodestyle warning
+       # "F",  # pyflakes
+       # "FA", # verify annotations from future
+       # "G",  # format strings for logging statements
+       # "N",  # naming conventions
+       # "I",  # isort
+       # "ICN", # import conventions
+       # # "D1",  # require doc
+       # "D2",  # doc formatting
+       # "D4",  # doc convention
+       # "PL",  # pylint
+       # "PERF", # performance anti-patterns
+       # "PT",  # pytest style
+       # "PIE",  # misc lints
+       # "RET",  # improvements for return statements
+       # "RSE",  # improvements for rise statements
+       # "S",  # security testing
+       # "SIM",  # simplify code
+       # "T10",  # debugging statements
+       # "T20",  # print statements
+       # "TID",  # tidier imports
+       # "TRY",  # better exceptions
+       # "UP",  # upgrade syntax for newer versions of the language
+]
+
+ignore = [
+       "RET503", # don't enforce return-None
+       "E712", # comparison to bool: violated by SQLAlchemy filters
+       "PT004", # fixture does not return anything, add leading underscore: violated by clean_db
+       "PLC1901", # simplify comparison to empty string: violated by SQLAlchemy filters
+]
+
+[tool.ruff.lint.per-file-ignores]
+"ckanext/googleanalytics/tests*" = ["S", "PL", "ANN"]
+
+[tool.ruff.lint.flake8-import-conventions.aliases]
+"ckan.plugins" = "p"
+"ckan.plugins.toolkit" = "tk"
+sqlalchemy = "sa"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+section-order = [
+              "future",
+              "standard-library",
+              "first-party",
+              "third-party",
+              "ckan",
+              "ckanext",
+              "self",
+              "local-folder",
+]
+
+[tool.ruff.lint.isort.sections]
+ckan = ["ckan"]
+ckanext = ["ckanext"]
+self = ["ckanext.googleanalytics"]
+
+[tool.pytest.ini_options]
+addopts = "--ckan-ini test.ini -m 'not benchmark'"
+filterwarnings = [
+]
+
+[tool.git-changelog]
+output = "CHANGELOG.md"
+convention = "conventional"
+parse-trailers = true
+
+[tool.pyright]
+pythonVersion = "3.8"
+include = ["ckanext"]
+exclude = [
+    # "**/test*",
+    "**/migration",
+]
+strict = []
+
+strictParameterNoneValue = true
+
+# Check the meaning of rules here
+# https://github.com/microsoft/pyright/blob/main/docs/configuration.md
+reportFunctionMemberAccess = true # non-standard member accesses for functions
+reportMissingImports = true
+reportMissingModuleSource = true
+reportMissingTypeStubs = false
+reportImportCycles = true
+reportUnusedImport = true
+reportUnusedClass = true
+reportUnusedFunction = true
+reportUnusedVariable = true
+reportDuplicateImport = true
+reportOptionalSubscript = true
+reportOptionalMemberAccess = true
+reportOptionalCall = true
+reportOptionalIterable = true
+reportOptionalContextManager = true
+reportOptionalOperand = true
+reportTypedDictNotRequiredAccess = false # Context won't work with this rule
+reportConstantRedefinition = true
+reportIncompatibleMethodOverride = true
+reportIncompatibleVariableOverride = true
+reportOverlappingOverload = true
+reportUntypedFunctionDecorator = false
+reportUnknownParameterType = true
+reportUnknownArgumentType = false
+reportUnknownLambdaType = false
+reportUnknownMemberType = false
+reportMissingTypeArgument = true
+reportInvalidTypeVarUse = true
+reportCallInDefaultInitializer = true
+reportUnknownVariableType = true
+reportUntypedBaseClass = true
+reportUnnecessaryIsInstance = true
+reportUnnecessaryCast = true
+reportUnnecessaryComparison = true
+reportAssertAlwaysTrue = true
+reportSelfClsParameterName = true
+reportUnusedCallResult = false # allow function calls for side-effect only
+useLibraryCodeForTypes = true
+reportGeneralTypeIssues = true
+reportPropertyTypeMismatch = true
+reportWildcardImportFromLibrary = true
+reportUntypedClassDecorator = false
+reportUntypedNamedTuple = true
+reportPrivateUsage = true
+reportPrivateImportUsage = true
+reportInconsistentConstructor = true
+reportMissingSuperCall = false
+reportUninitializedInstanceVariable = true
+reportInvalidStringEscapeSequence = true
+reportMissingParameterType = true
+reportImplicitStringConcatenation = false
+reportUndefinedVariable = true
+reportUnboundVariable = true
+reportInvalidStubStatement = true
+reportIncompleteStub = true
+reportUnsupportedDunderAll = true
+reportUnusedCoroutine = true
+reportUnnecessaryTypeIgnoreComment = true
+reportMatchNotExhaustive = true
+
+[tool.coverage.run]
+branch = true
+omit = ["ckanext/googleanalytics/tests/*"]

@@ -1,11 +1,16 @@
 # CKAN Google Analytics Extension
 
-**Status:** Production
-
-**CKAN Version:** >= 2.8
-
 A CKAN extension that both sends tracking data to Google Analytics and
 retrieves statistics from Google Analytics and inserts them into CKAN pages.
+
+Compatibility with core CKAN versions:
+
+| CKAN version | Compatible? |
+|--------------|-------------|
+| 2.9          | no          |
+| 2.10         | yes         |
+| 2.11         | yes         |
+| master       | yes         |
 
 ## Features
 
@@ -161,7 +166,7 @@ Before ckanext-googleanalytics can retrieve statistics from Google Analytics, yo
 There are some very high-level functional tests that you can run using::
 
    $ pip install -r dev-requirements.txt
-	$ pytest --ckan-ini=test.ini 
+	$ pytest --ckan-ini=test.ini
 
 
 ## Future

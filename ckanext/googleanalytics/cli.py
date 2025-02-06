@@ -1,15 +1,14 @@
-# encoding: utf-8
-from __future__ import print_function
-from __future__ import absolute_import
 import datetime
-import time
-import re
 import logging
+import re
+import time
+
 import click
+
 import ckan.model as model
 import ckan.plugins.toolkit as tk
 
-from . import dbutil, config
+from . import config, dbutil
 
 log = logging.getLogger(__name__)
 PACKAGE_URL = "/dataset/"  # XXX get from routes...
@@ -22,7 +21,7 @@ def get_commands():
     return [googleanalytics]
 
 
-@click.group(short_help=u"GoogleAnalytics commands")
+@click.group(short_help="GoogleAnalytics commands")
 def googleanalytics():
     pass
 
@@ -33,33 +32,33 @@ def init():
     tk.error_shout("Use CKAN DB migrations: ckan db pending-migrations --apply")
 
 
-@googleanalytics.command(short_help=u"Load data from Google Analytics API")
+@googleanalytics.command(short_help="Load data from Google Analytics API")
 @click.argument("credentials", type=click.Path(exists=True))
 @click.option("-s", "--start-date", required=False)
 def load(credentials, start_date):
     """Parse data from Google Analytics API and store it
     in a local database
     """
-    from .ga_auth import init_service, get_profile_id
+    from .ga_auth import get_profile_id, init_service
 
     try:
         service = init_service(credentials)
     except TypeError as e:
-        raise Exception("Unable to create a service: {0}".format(e))
+        raise Exception(f"Unable to create a service: {e}")
     profile_id = get_profile_id(service)
     if not profile_id:
-        tk.error_shout("Unknown Profile ID. `googleanalytics.profile_id` or `googleanalytics.account` must be specified")
+        tk.error_shout(
+            "Unknown Profile ID. `googleanalytics.profile_id` or "
+            "`googleanalytics.account` must be specified"
+        )
         raise click.Abort()
     if start_date:
         bulk_import(service, profile_id, start_date)
     else:
-        query = "ga:pagePath=~%s,ga:pagePath=~%s" % (
-            PACKAGE_URL,
-            config.prefix(),
-        )
+        query = f"ga:pagePath=~{PACKAGE_URL},ga:pagePath=~{config.prefix()}"
         packages_data = get_ga_data(service, profile_id, query_filter=query)
         save_ga_data(packages_data)
-        log.info("Saved %s records from google" % len(packages_data))
+        log.info(f"Saved {len(packages_data)} records from google")
 
 
 ###############################################################################
@@ -70,11 +69,8 @@ def load(credentials, start_date):
 def internal_save(packages_data, summary_date):
     engine = model.meta.engine
     # clear out existing data before adding new
-    sql = (
-        """DELETE FROM tracking_summary
-             WHERE tracking_date='%s'; """
-        % summary_date
-    )
+    sql = f"""DELETE FROM tracking_summary
+             WHERE tracking_date='{summary_date}'; """
     engine.execute(sql)
 
     for url, count in list(packages_data.items()):
@@ -105,7 +101,7 @@ def internal_save(packages_data, summary_date):
                  ,'~~not~found~~')
              WHERE t.package_id = '~~not~found~~'
              AND tracking_type = 'page';"""
-    engine.execute(sql, "%sedit/" % PACKAGE_URL)
+    engine.execute(sql, f"{PACKAGE_URL}edit/")
 
     # update summary totals for resources
     sql = """UPDATE tracking_summary t1
@@ -176,8 +172,7 @@ def bulk_import(service, profile_id, start_date=None):
         # sleep to rate limit requests
         time.sleep(0.25)
         start_date = stop_date
-        log.info("%s received %s" % (len(packages_data), start_date))
-        print("%s received %s" % (len(packages_data), start_date))
+        log.info(f"{len(packages_data)} received {start_date}")
 
 
 def get_ga_data_new(service, profile_id, start_date=None, end_date=None):
@@ -192,10 +187,7 @@ def get_ga_data_new(service, profile_id, start_date=None, end_date=None):
     end_date = end_date.strftime("%Y-%m-%d")
 
     packages = {}
-    query = "ga:pagePath=~%s,ga:pagePath=~%s" % (
-        PACKAGE_URL,
-        config.prefix(),
-    )
+    query = f"ga:pagePath=~{PACKAGE_URL},ga:pagePath=~{config.prefix()}"
     metrics = "ga:uniquePageviews"
     sort = "-ga:uniquePageviews"
 
@@ -208,7 +200,7 @@ def get_ga_data_new(service, profile_id, start_date=None, end_date=None):
             service.data()
             .ga()
             .get(
-                ids="ga:%s" % profile_id,
+                ids=f"ga:{profile_id}",
                 filters=query,
                 dimensions="ga:pagePath",
                 start_date=start_date,
@@ -244,7 +236,7 @@ def save_ga_data(packages_data):
         ever = visits.get("ever", 0)
         matches = RESOURCE_URL_REGEX.match(identifier)
         if matches:
-            resource_url = identifier[len(config.prefix()):]
+            resource_url = identifier[len(config.prefix()) :]
             resource = (
                 model.Session.query(model.Resource)
                 .autoflush(True)
@@ -252,21 +244,21 @@ def save_ga_data(packages_data):
                 .first()
             )
             if not resource:
-                log.warning("Couldn't find resource %s" % resource_url)
+                log.warning(f"Couldn't find resource {resource_url}")
                 continue
             dbutil.update_resource_visits(resource.id, recently, ever)
-            log.info("Updated %s with %s visits" % (resource.id, visits))
+            log.info(f"Updated {resource.id} with {visits} visits")
         else:
-            package_name = identifier[len(PACKAGE_URL):]
+            package_name = identifier[len(PACKAGE_URL) :]
             if "/" in package_name:
-                log.warning("%s not a valid package name" % package_name)
+                log.warning(f"{package_name} not a valid package name")
                 continue
             item = model.Package.by_name(package_name)
             if not item:
-                log.warning("Couldn't find package %s" % package_name)
+                log.warning(f"Couldn't find package {package_name}")
                 continue
             dbutil.update_package_visits(item.id, recently, ever)
-            log.info("Updated %s with %s visits" % (item.id, visits))
+            log.info(f"Updated {item.id} with {visits} visits")
     model.Session.commit()
 
 
@@ -285,8 +277,6 @@ def ga_query(
     if not metrics:
         metrics = "ga:visits,ga:visitors,ga:newVisits,ga:uniquePageviews"
     sort = "-ga:uniquePageviews"
-
-    print("%s -> %s" % (from_date, to_date))
 
     results = (
         service.data()
@@ -320,7 +310,7 @@ def get_ga_data(service, profile_id, query_filter):
     recent_date = recent_date.strftime("%Y-%m-%d")
     floor_date = datetime.date(2005, 1, 1)
     packages = {}
-    queries = ["ga:pagePath=~%s" % PACKAGE_URL]
+    queries = [f"ga:pagePath=~{PACKAGE_URL}"]
     dates = {"recent": recent_date, "ever": floor_date}
     for date_name, date in list(dates.items()):
         for query in queries:
@@ -343,7 +333,5 @@ def get_ga_data(service, profile_id, query_filter):
                     val = 0
                     if package in packages and date_name in packages[package]:
                         val += packages[package][date_name]
-                    packages.setdefault(package, {})[date_name] = (
-                        int(count) + val
-                    )
+                    packages.setdefault(package, {})[date_name] = int(count) + val
     return packages

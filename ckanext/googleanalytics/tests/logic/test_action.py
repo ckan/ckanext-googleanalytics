@@ -1,8 +1,8 @@
 import pytest
 
-from ckan.tests.helpers import call_action
-import ckan.plugins.toolkit as tk
 import ckan.model as model
+import ckan.plugins.toolkit as tk
+from ckan.tests.helpers import call_action
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")

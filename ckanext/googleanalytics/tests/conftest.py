@@ -1,27 +1,17 @@
-import pytest
 import factory
-
+import pytest
 from factory.alchemy import SQLAlchemyModelFactory
 from pytest_factoryboy import register
-from ckan.plugins import toolkit
 
 import ckan.model as model
 
 from ckanext.googleanalytics.model import PackageStats, ResourceStats
 
 
-if toolkit.check_ckan_version("2.9"):
-    @pytest.fixture()
-    def clean_db(reset_db, migrate_db_for):
-        reset_db()
-        migrate_db_for("googleanalytics")
-else:
-    from ckanext.googleanalytics.dbutil import init_tables
-
-    @pytest.fixture()
-    def clean_db(reset_db):
-        reset_db()
-        init_tables()
+@pytest.fixture()
+def clean_db(reset_db, migrate_db_for):
+    reset_db()
+    migrate_db_for("googleanalytics")
 
 
 @register

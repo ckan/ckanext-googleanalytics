@@ -1,10 +1,10 @@
 import json
 import logging
+from urllib.parse import urlencode
 
 import requests
-from six.moves.urllib.parse import urlencode
-from ckanext.googleanalytics import config
 
+from ckanext.googleanalytics import config
 
 log = logging.getLogger(__name__)
 
@@ -15,17 +15,21 @@ EVENT_DOWNLOAD = "CKAN Resource Download Request"
 def send_event(data):
     if isinstance(data, MeasurementProtocolData):
         if data["event"] == EVENT_API:
-            return _mp_api_handler({
-                "action": data["object"],
-                "payload": data["payload"],
-            }, user_id=data["user_id"])
+            return _mp_api_handler(
+                {
+                    "action": data["object"],
+                    "payload": data["payload"],
+                },
+                user_id=data["user_id"],
+            )
 
         if data["event"] == EVENT_DOWNLOAD:
-            return _mp_download_handler({"payload": {
-                "resource_id": data["id"]
-            }})
+            return _mp_download_handler({"payload": {"resource_id": data["id"]}})
 
-        log.warning("Only API and Download events supported by Measurement Protocol at the moment")
+        log.warning(
+            "Only API and Download events supported "
+            "by Measurement Protocol at the moment"
+        )
         return
 
     return _ga_handler(data)
@@ -39,30 +43,31 @@ class SafeJSONEncoder(json.JSONEncoder):
 def _mp_api_handler(data_dict, user_id=None):
     log.debug(
         "Sending API event to Google Analytics using the Measurement Protocol: %s",
-        data_dict
+        data_dict,
     )
-    _mp_event({
-        "name": data_dict["action"],
-        "params": data_dict["payload"]
-    }, user_id=user_id)
+    _mp_event(
+        {"name": data_dict["action"], "params": data_dict["payload"]}, user_id=user_id
+    )
 
 
 def _mp_download_handler(data_dict):
     log.debug(
         "Sending Downlaod event to Google Analytics using the Measurement Protocol: %s",
-        data_dict
+        data_dict,
     )
-    _mp_event({
-        "name": "file_download",
-        "params": data_dict["payload"],
-    })
+    _mp_event(
+        {
+            "name": "file_download",
+            "params": data_dict["payload"],
+        }
+    )
 
 
 def _mp_event(event, user_id=None):
     data = {
-            "client_id": config.measurement_protocol_client_id(),
-            "non_personalized_ads": False,
-            "events": [event]
+        "client_id": config.measurement_protocol_client_id(),
+        "non_personalized_ads": False,
+        "events": [event],
     }
 
     if user_id:
@@ -74,7 +79,7 @@ def _mp_event(event, user_id=None):
             "api_secret": config.measurement_protocol_client_secret(),
             "measurement_id": config.measurement_id(),
         },
-        data=json.dumps(data, cls=SafeJSONEncoder)
+        data=json.dumps(data, cls=SafeJSONEncoder),
     )
 
     if resp.status_code >= 300:

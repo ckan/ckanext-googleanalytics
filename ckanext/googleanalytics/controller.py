@@ -1,19 +1,16 @@
-from __future__ import absolute_import
-
-import logging
-from ckan.lib.base import BaseController, c, render, request
-from . import dbutil
 
 import hashlib
-from . import plugin
+import logging
 
 from paste.util.multidict import MultiDict
 
-from ckan.controllers.api import ApiController
-
 import ckan.plugins.toolkit as tk
+from ckan.controllers.api import ApiController
+from ckan.lib.base import BaseController, c, render, request
+
 from ckanext.googleanalytics import config
 
+from . import dbutil, plugin
 
 log = logging.getLogger("ckanext.googleanalytics")
 

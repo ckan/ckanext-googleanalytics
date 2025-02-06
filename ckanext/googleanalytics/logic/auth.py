@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 from ckan.authz import is_authorized
 

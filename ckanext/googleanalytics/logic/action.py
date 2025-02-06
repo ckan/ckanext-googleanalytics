@@ -1,12 +1,11 @@
-from __future__ import absolute_import
 
 import ckan.plugins.toolkit as tk
 from ckan.logic import validate
 
-from . import schema
 from .. import config
+from ..ga_auth import get_profile_id, init_service
 from ..model import PackageStats, ResourceStats
-from ..ga_auth import init_service, get_profile_id
+from . import schema
 
 
 def get_actions():
@@ -79,7 +78,7 @@ def event_report(context, data_dict):
         se.data()
         .ga()
         .get(
-            ids="ga:{id}".format(id=get_profile_id(se)),
+            ids=f"ga:{get_profile_id(se)}",
             dimensions=",".join(data_dict["dimensions"]),
             metrics=",".join(data_dict["metrics"]),
             start_date=data_dict["start_date"].date().isoformat(),

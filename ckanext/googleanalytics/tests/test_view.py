@@ -1,11 +1,12 @@
 import pytest
-import six
+
 import ckan.plugins.toolkit as tk
+
 from ckanext.googleanalytics import config
 
 
 def _render_header(mode, tracking_id):
-    return tk.render_snippet("googleanalytics/snippets/_{}.html".format(mode), {
+    return tk.render_snippet(f"googleanalytics/snippets/_{mode}.html", {
         "googleanalytics_id": tracking_id,
         "googleanalytics_domain": config.domain(),
         "googleanalytics_fields": config.fields(),
@@ -23,4 +24,4 @@ class TestCodeSnippets:
         monkeypatch.setitem(ckan_config, config.CONFIG_TRACKING_MODE, mode)
         snippet = _render_header(mode, tracking_id)
         resp = app.get("/about")
-        assert six.ensure_str(snippet) in resp
+        assert snippet in resp

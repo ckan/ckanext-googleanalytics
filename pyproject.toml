@@ -47,7 +47,7 @@ find = {}
 
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py37"
 
 [tool.ruff.lint]
 select = [
@@ -57,14 +57,14 @@ select = [
        # "C4",  # better list/set/dict comprehensions
        # "C90",  # check McCabe complexity
        # "DTZ", # enforce timezone in date objects
-       # "E",  # pycodestyle error
+       "E",  # pycodestyle error
        # "W",  # pycodestyle warning
-       # "F",  # pyflakes
+       "F",  # pyflakes
        # "FA", # verify annotations from future
        # "G",  # format strings for logging statements
        # "N",  # naming conventions
-       # "I",  # isort
-       # "ICN", # import conventions
+       "I",  # isort
+       "ICN", # import conventions
        # # "D1",  # require doc
        # "D2",  # doc formatting
        # "D4",  # doc convention
@@ -76,11 +76,11 @@ select = [
        # "RSE",  # improvements for rise statements
        # "S",  # security testing
        # "SIM",  # simplify code
-       # "T10",  # debugging statements
-       # "T20",  # print statements
+       "T10",  # debugging statements
+       "T20",  # print statements
        # "TID",  # tidier imports
        # "TRY",  # better exceptions
-       # "UP",  # upgrade syntax for newer versions of the language
+       "UP",  # upgrade syntax for newer versions of the language
 ]
 
 ignore = [
@@ -129,7 +129,7 @@ convention = "conventional"
 parse-trailers = true
 
 [tool.pyright]
-pythonVersion = "3.8"
+pythonVersion = "3.7"
 include = ["ckanext"]
 exclude = [
     # "**/test*",

@@ -1,5 +1,6 @@
 
 import ckan.plugins.toolkit as tk
+
 from ckanext.googleanalytics import config
 
 

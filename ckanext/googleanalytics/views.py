@@ -1,19 +1,15 @@
-# -*- coding: utf-8 -*-
-
 import hashlib
 import logging
-import six
 
 from flask import Blueprint
 
 import ckan.plugins.toolkit as tk
 import ckan.views.api as api
 import ckan.views.resource as resource
-
 from ckan.common import g
 from ckan.plugins import PluginImplementations
 
-from ckanext.googleanalytics import utils, config, interfaces
+from ckanext.googleanalytics import config, interfaces, utils
 
 log = logging.getLogger(__name__)
 ga = Blueprint("google_analytics", "google_analytics")
@@ -29,8 +25,10 @@ def action(logic_function, ver=api.API_MAX_VERSION):
             if "q" in request_data:
                 id = request_data["q"]
             if "query" in request_data:
-                id = request_data[u"query"]
-            _post_analytics(g.user, utils.EVENT_API, logic_function, "", id, request_data)
+                id = request_data["query"]
+            _post_analytics(
+                g.user, utils.EVENT_API, logic_function, "", id, request_data
+            )
     except Exception as e:
         log.debug(e)
         pass
@@ -44,9 +42,7 @@ ga.add_url_rule(
     view_func=action,
 )
 ga.add_url_rule(
-    "/api/<int(min=3, max={0}):ver>/action/<logic_function>".format(
-        api.API_MAX_VERSION
-    ),
+    f"/api/<int(min=3, max={api.API_MAX_VERSION}):ver>/action/<logic_function>",
     methods=["GET", "POST"],
     view_func=action,
 )
@@ -72,9 +68,7 @@ def download(id, resource_id, filename=None, package_type="dataset"):
     )
 
 
-ga.add_url_rule(
-    "/dataset/<id>/resource/<resource_id>/download", view_func=download
-)
+ga.add_url_rule("/dataset/<id>/resource/<resource_id>/download", view_func=download)
 ga.add_url_rule(
     "/dataset/<id>/resource/<resource_id>/download/<filename>",
     view_func=download,
@@ -82,42 +76,51 @@ ga.add_url_rule(
 
 
 def _post_analytics(
-        user, event_type,
-        request_obj_type, request_function,
-        request_id, request_payload=None
+    user,
+    event_type,
+    request_obj_type,
+    request_function,
+    request_id,
+    request_payload=None,
 ):
-
     from ckanext.googleanalytics.plugin import GoogleAnalyticsPlugin
 
     if config.tracking_id():
         mp_client_id = config.measurement_protocol_client_id()
         if mp_client_id and (
-                event_type == utils.EVENT_API
-                or (event_type == utils.EVENT_DOWNLOAD and config.measurement_protocol_track_downloads())
+            event_type == utils.EVENT_API
+            or (
+                event_type == utils.EVENT_DOWNLOAD
+                and config.measurement_protocol_track_downloads()
+            )
         ):
-            data_dict = utils.MeasurementProtocolData({
-                "event": event_type,
-                "object": request_obj_type,
-                "function": request_function,
-                "id": request_id,
-                "payload": request_payload,
-                "user_id": hashlib.md5(six.ensure_binary(tk.c.user)).hexdigest()
-            })
+            data_dict = utils.MeasurementProtocolData(
+                {
+                    "event": event_type,
+                    "object": request_obj_type,
+                    "function": request_function,
+                    "id": request_id,
+                    "payload": request_payload,
+                    "user_id": hashlib.md5(tk.current_user.name.encode()).hexdigest(),
+                }
+            )
 
         else:
-            data_dict = utils.UniversalAnalyticsData({
-                "v": 1,
-                "tid": config.tracking_id(),
-                "cid": hashlib.md5(six.ensure_binary(tk.c.user)).hexdigest(),
-                # customer id should be obfuscated
-                "t": "event",
-                "dh": tk.request.environ["HTTP_HOST"],
-                "dp": tk.request.environ["PATH_INFO"],
-                "dr": tk.request.environ.get("HTTP_REFERER", ""),
-                "ec": event_type,
-                "ea": request_obj_type + request_function,
-                "el": request_id,
-            })
+            data_dict = utils.UniversalAnalyticsData(
+                {
+                    "v": 1,
+                    "tid": config.tracking_id(),
+                    "cid": hashlib.md5(tk.current_user.name.encode()).hexdigest(),
+                    # customer id should be obfuscated
+                    "t": "event",
+                    "dh": tk.request.environ["HTTP_HOST"],
+                    "dp": tk.request.environ["PATH_INFO"],
+                    "dr": tk.request.environ.get("HTTP_REFERER", ""),
+                    "ec": event_type,
+                    "ea": request_obj_type + request_function,
+                    "el": request_id,
+                }
+            )
 
         for p in PluginImplementations(interfaces.IGoogleAnalytics):
             if p.googleanalytics_skip_event(data_dict):

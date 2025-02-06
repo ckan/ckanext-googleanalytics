@@ -1,6 +1,5 @@
-from sqlalchemy import Table, Column, Integer, String, MetaData
+from sqlalchemy import Column, Integer, MetaData, String, Table, func
 from sqlalchemy.sql import select, text
-from sqlalchemy import func
 
 import ckan.model as model
 
@@ -37,7 +36,7 @@ def get_table(name):
 
 def _update_visits(table_name, item_id, recently, ever):
     stats = get_table(table_name)
-    id_col_name = "%s_id" % table_name[: -len("_stats")]
+    id_col_name = "{}_id".format(table_name[: -len("_stats")])
     id_col = getattr(stats.c, id_col_name)
     s = select([func.count(id_col)], id_col == item_id)
     connection = model.Session.connection()
@@ -92,7 +91,7 @@ def get_top_resources(limit=20):
     res = connection.execute(s).fetchmany(limit)
     for resource_id, recent, ever in res:
         item = model.Session.query(model.Resource).filter(
-            "resource.id = '%s'" % resource_id
+            f"resource.id = '{resource_id}'"
         )
         if not item.count():
             continue

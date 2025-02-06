@@ -1,18 +1,16 @@
-from __future__ import absolute_import
-import queue
 
 import logging
+import queue
 import threading
 
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
-
 from ckan.exceptions import CkanConfigurationException
-from ckanext.googleanalytics.views import ga
-from ckanext.googleanalytics.cli import get_commands
 
 from ckanext.googleanalytics import helpers, utils
+from ckanext.googleanalytics.cli import get_commands
 from ckanext.googleanalytics.logic import action, auth
+from ckanext.googleanalytics.views import ga
 
 log = logging.getLogger(__name__)
 

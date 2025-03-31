@@ -56,3 +56,8 @@ groups:
 
       - key: googleanalytics.recent_view_days
         default: 14
+
+      - key: googleanalytics.measurement_protocol.id
+      - key: googleanalytics.measurement_protocol.client_id
+      - key: googleanalytics.measurement_protocol.client_secret
+      - key: googleanalytics.measurement_protocol.track_downloads

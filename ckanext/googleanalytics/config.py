@@ -6,6 +6,7 @@ from werkzeug.utils import import_string
 import ckan.plugins.toolkit as tk
 
 CONFIG_TRACKING_ID = "googleanalytics.id"
+CONFIG_PROPERTY_ID = "googleanalytics.property_id"
 CONFIG_HANDLER_PATH = "googleanalytics.download_handler"
 CONFIG_TRACKING_MODE = "googleanalytics.tracking_mode"
 
@@ -19,6 +20,11 @@ log = logging.getLogger(__name__)
 def tracking_id():
     # type: () -> str
     return tk.config["googleanalytics.id"]
+
+
+def property_id():
+    # type: () -> str
+    return tk.config[CONFIG_PROPERTY_ID]
 
 
 def download_handler():

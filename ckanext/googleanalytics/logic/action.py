@@ -1,7 +1,14 @@
 from __future__ import absolute_import
-
+import itertools as it
+import operator as op
 import ckan.plugins.toolkit as tk
 from ckan.logic import validate
+from google.analytics.data import BetaAnalyticsDataClient
+from google.analytics.data_v1beta.types import (
+    RunReportRequest,
+    MetricHeader,
+    DimensionHeader,
+)
 
 from . import schema
 from .. import config
@@ -56,40 +63,39 @@ def resource_stats_show(context, data_dict):
 def event_report(context, data_dict):
     tk.check_access("sysadmin", context, data_dict)
 
-    se = init_service(config.credentials())
-    filters = []
-    if "action" in data_dict:
-        filters.append(
-            "ga:eventAction=={action}".format(action=data_dict["action"])
-        )
+    client = BetaAnalyticsDataClient.from_service_account_file(config.credentials())
 
-    if "category" in data_dict:
-        filters.append(
-            "ga:eventCategory=={category}".format(
-                category=data_dict["category"]
-            )
-        )
+    params = {
+        "property": f"properties/{config.property_id()}",
+        "dimensions": [{"name": d} for d in data_dict.get("dimensions", [])],
+        "metrics": [{"name": m} for m in data_dict.get("metrics", ["eventCount"])],
+        "date_ranges": [
+            {
+                "start_date": data_dict["start_date"].date().isoformat(),
+                "end_date": data_dict["end_date"].date().isoformat(),
+            }
+        ],
+    }
 
-    if "label" in data_dict:
-        filters.append(
-            "ga:eventLabel=={label}".format(label=data_dict["label"])
-        )
+    if "name" in data_dict:
+        params["dimension_filter"] = {
+            "filter": {
+                "field_name": "eventName",
+                "string_filter": {"value": data_dict["name"]},
+            }
+        }
 
-    report = (
-        se.data()
-        .ga()
-        .get(
-            ids="ga:{id}".format(id=get_profile_id(se)),
-            dimensions=",".join(data_dict["dimensions"]),
-            metrics=",".join(data_dict["metrics"]),
-            start_date=data_dict["start_date"].date().isoformat(),
-            end_date=data_dict["end_date"].date().isoformat(),
-            filters=";".join(filters) or None,
-        )
-        .execute()
-    )
+    request = RunReportRequest(**params)
+
+    response = client.run_report(request)
+
+    header_names = it.chain(response.dimension_headers, response.metric_headers)
 
     return {
-        "headers": [h["name"] for h in report["columnHeaders"]],
-        "rows": report.get("rows", []),
+        "headers": [h.name for h in header_names],
+        "rows": [
+            [v.value for v in row.dimension_values]
+            + [v.value for v in row.metric_values]
+            for row in response.rows
+        ],
     }

@@ -1,4 +1,0 @@
-pytest<=6.0.2
-pytest-ckan
-pytest-factoryboy
-pytest-cov

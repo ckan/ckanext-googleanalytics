@@ -1,0 +1,25 @@
+{% ckan_extends %}
+{{  g.ga_send_stats }}
+
+{% block links %}
+  {{ super() }}
+  {% block googleanalytics_header %}
+  {% if h.dge_ga_send_stats() == True %}
+    {{ h.dge_ga_googleanalytics_header() }}
+  {% endif %}
+  {% endblock %}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% resource 'ckanext-dge-ga/dge-seo-pages.js' %}
+  {% resource 'ckanext-dge-ga/dge-seo-events.js' %}
+  {% block googleanalytics_event_tracking %}
+   {% if h.dge_ga_send_stats() == True %}
+    {% resource 'ckanext-dge-ga/dge_ga_event_tracking.js' %}
+    <div class="js-hide" data-module="google-analytics"
+      data-module-googleanalytics_resource_prefix="{{ g.googleanalytics_resource_prefix }}">
+    </div>
+    {% endif %}
+  {% endblock %}
+{% endblock %}

@@ -1,7 +1,7 @@
 /*
-* Copyright (C) 2022 Entidad Pública Empresarial Red.es
+* Copyright (C) 2025 Entidad Pública Empresarial Red.es
 *
-* This file is part of "dge_ga (datos.gob.es)".
+* This file is part of "dge-ga (datos.gob.es)".
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -10,7 +10,7 @@
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 * GNU General Public License for more details.
 *
 * You should have received a copy of the GNU General Public License
@@ -18,7 +18,7 @@
 */
 
 // GoogleTagManager PRO.
-var gtmId = 'GTM-PL62VCW';
+var gtmId = document.getElementById('gtm-config').getAttribute('data-gtmid');
 // Insert GTM's iframe sinside <body> at first position.
 $(document.body).prepend('<noscript><iframe src="https://www.googletagmanager.com/ns.html?id="' + gtmId + '"height="0"width="0"style="display:none;visibility:hidden"></iframe></noscript>');
 /* Remove diacritics utils */
@@ -82,8 +82,9 @@ function buildDataLayer(user) {
   pagina = concatCollectionElements(sections); // Sections concatenation ('section1|section2|section3').
 
   // For proper functioning it's necessary to insert these as <script> at top of the <head> element.
-  $(document.head).prepend('<script id="datalayer-script">dataLayer=[{"pagina":"' + pagina + '","seccion_s1":"' + formatDataLayerValue(sections[0]) + '","seccion_s2":"' + formatDataLayerValue(sections[1]) + '","seccion_s3":"' + formatDataLayerValue(sections[2]) + '","seccion_s4":"' + formatDataLayerValue(sections[3])+ '","publicador":"' + publicador + '","contenido_categoria":"' + contenido_categoria + '","tipo_visitante":"' + user + '","idioma":"' + document.documentElement.lang + '","pagina_error":"","event":"loadComplete"}];</script>');
-  $('#datalayer-script').after('<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({"gtm.start":new Date().getTime(),event:"gtm.js"});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src="https://www.googletagmanager.com/gtm.js?id="+i+dl;f.parentNode.insertBefore(j,f);})(window,document,"script","dataLayer","' + gtmId + '");</script>');
+  $(document.head).prepend('<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({"gtm.start":new Date().getTime(),event:"gtm.js"});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src="https://www.googletagmanager.com/gtm.js?id="+i+dl;f.parentNode.insertBefore(j,f);})(window,document,"script","dataLayer","' + gtmId + '");</script>');
+  $(document.body).prepend('<script id="datalayer-script">jQuery(document).ready(function() {console.log("Enviando datos de visitas");dataLayer.push({"pagina":"'+ formatDataLayerValue(pagina) + '","seccion_s1":"' + formatDataLayerValue(sections[0]) + '","seccion_s2":"' + formatDataLayerValue(sections[1]) + '","seccion_s3":"' + formatDataLayerValue(sections[2]) + '","seccion_s4":"' + formatDataLayerValue(sections[3]) + '","tipo_visitante":"' + formatDataLayerValue(user) + '","idioma":"' + formatDataLayerValue(document.documentElement.lang) + '","pagina_error":"' + formatDataLayerValue('') + '","publicador":"' + publicador + '","contenido_categoria":"' + contenido_categoria + '","event": "load_complete"})});</script>');
+
 }
 
 function removeDiacritics(text) {

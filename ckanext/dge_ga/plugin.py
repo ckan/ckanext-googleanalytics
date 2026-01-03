@@ -1,6 +1,6 @@
-# Copyright (C) 2022 Entidad Pública Empresarial Red.es
+# Copyright (C) 2025 Entidad Pública Empresarial Red.es
 #
-# This file is part of "dge_ga (datos.gob.es)".
+# This file is part of "dge-ga (datos.gob.es)".
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -9,7 +9,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -17,16 +17,13 @@
 
 import ast
 import logging
-import urllib
-import paste.deploy.converters as converters
-import pylons
+import urllib.request, urllib.parse, urllib.error
+import ckantoolkit as tk
 import ckan.lib.helpers as h
 import ckan.plugins as p
 
-import urllib2
-
 import threading
-import Queue
+import queue
 
 log = logging.getLogger('ckanext.dge_ga')
 DEFAULT_RESOURCE_URL_TAG = '/downloads/'
@@ -45,10 +42,10 @@ class AnalyticsPostThread(threading.Thread):
             # grabs host from queue
             data_dict = self.queue.get()
 
-            data = urllib.urlencode(data_dict)
+            data = urllib.parse.urlencode(data_dict)
             log.debug("Sending API event to Google Analytics: " + data)
             # send analytics
-            urllib2.urlopen(
+            urllib.request.urlopen(
                 "http://www.google-analytics.com/collect",
                 data,
                 # timeout in seconds
@@ -64,8 +61,9 @@ class DgeGaPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer, inherit=True)
     p.implements(p.ITemplateHelpers)
 
-    analytics_queue = Queue.Queue()
+    analytics_queue = queue.Queue()
 
+    # IConfigurable
     def configure(self, config):
         '''Load config settings for this extension from config file.
 
@@ -80,8 +78,6 @@ class DgeGaPlugin(p.SingletonPlugin):
                 'googleanalytics.domain', 'auto')
         self.googleanalytics_fields = ast.literal_eval(config.get(
             'googleanalytics.fields', '{}'))
-        self.googleanalytics_javascript_url = h.url_for_static(
-                '/scripts/ckanext-googleanalytics.js')
 
         # If resource_prefix is not in config file then write the default value
         # to the config dict, otherwise templates seem to get 'true' when they
@@ -91,23 +87,22 @@ class DgeGaPlugin(p.SingletonPlugin):
         self.googleanalytics_resource_prefix = config[
             'googleanalytics_resource_prefix']
 
-        self.show_downloads = converters.asbool(
+        self.show_downloads = tk.asbool(
             config.get('googleanalytics.show_downloads', True))
-        self.track_events = converters.asbool(
+        self.track_events = tk.asbool(
             config.get('googleanalytics.track_events', False))
 
-        self.ga_send_stats = converters.asbool(config.get('ckanext.dge_ga.send_stats', True))
+        self.ga_send_stats = tk.asbool(config.get('ckanext.dge_ga.send_stats', True))
 
         log.debug('ga_send_stats=%s', self.ga_send_stats)
-        p.toolkit.add_resource('fanstatic_library', 'ckanext-dge-ga')
 
-            # spawn a pool of 5 threads, and pass them queue instance
         for i in range(5):
             t = AnalyticsPostThread(self.analytics_queue)
             t.setDaemon(True)
             t.start()
 
 
+    # IConfigurer
     def update_config(self, config):
         '''Change the CKAN (Pylons) environment configuration.
 
@@ -115,6 +110,7 @@ class DgeGaPlugin(p.SingletonPlugin):
 
         '''
         p.toolkit.add_template_directory(config, 'templates')
+        p.toolkit.add_resource('assets', 'ckanext-dge-ga')
 
 
     def get_helpers(self):

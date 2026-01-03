@@ -1,0 +1,27 @@
+dge_ga_event_tracking:
+  filter: rjsmin
+  output: ckanext-dge-ga/%(version)s-dge-ga-event-tracking.js
+  contents:
+    - js/dge_ga_event_tracking.js
+
+dge-seo-events-js:
+  filter: rjsmin
+  output: ckanext-dge-ga/%(version)s-dge-seo-event.js
+  contents:
+    - js/dge-seo-events.js
+
+dge-seo-events-min-js:
+  filter: rjsmin
+  contents:
+    - js/dge-seo-events.min.js
+
+dge-seo-pages-js:
+  filter: rjsmin
+  output: ckanext-dge-ga/%(version)s-dge-seo-pages.js
+  contents:
+    - js/dge-seo-pages.js
+
+dge-seo-pages-min-js:
+  filter: rjsmin
+  contents:
+    - js/dge-seo-pages.min.js

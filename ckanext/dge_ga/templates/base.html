@@ -12,14 +12,15 @@
 
 {% block scripts %}
   {{ super() }}
-  {% resource 'ckanext-dge-ga/dge-seo-pages.js' %}
-  {% resource 'ckanext-dge-ga/dge-seo-events.js' %}
+  {% asset 'ckanext-dge-ga/dge-seo-pages-js' %}
+  <div id="gtm-config" class="js-hide" data-gtmid="{{ config.get('googletagmanager_id') }}"></div>
+  {% asset 'ckanext-dge-ga/dge-seo-events-js' %}
   {% block googleanalytics_event_tracking %}
-   {% if h.dge_ga_send_stats() == True %}
-    {% resource 'ckanext-dge-ga/dge_ga_event_tracking.js' %}
-    <div class="js-hide" data-module="google-analytics"
-      data-module-googleanalytics_resource_prefix="{{ g.googleanalytics_resource_prefix }}">
-    </div>
+    {% if h.dge_ga_send_stats() == True %}
+      {% asset 'ckanext-dge-ga/dge_ga_event_tracking' %}
+      <div class="js-hide" data-module="google-analytics"
+        data-module-googleanalytics_resource_prefix="{{ g.googleanalytics_resource_prefix }}">
+      </div>
     {% endif %}
   {% endblock %}
 {% endblock %}

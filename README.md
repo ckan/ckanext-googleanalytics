@@ -17,7 +17,7 @@
 
 Compatibilidad con versiones de CKAN:
 
-| Versión de CKAN | ¿Compatible?                                                              |c
+| Versión de CKAN | ¿Compatible?                                                              |
 |--------------|-----------------------------------------------------------------------------|
 | 2.8          | ❌ No (requiere Python 3+)                                                   |
 | 2.9          | ✅ Sí                                                                        |
@@ -45,3 +45,4 @@ ckan.plugins = … dge_ga
 ## Licencia
 
 Este proyecto se distribuye bajo licencia **GNU Affero General Public License (AGPL) v3.0 o posterior**. Consulta el fichero [LICENSE](LICENSE).
+

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2025 Entidad Pública Empresarial Red.es
+* Copyright (C) 2026 Entidad Pública Empresarial Red.es
 *
 * This file is part of "dge-ga (datos.gob.es)".
 *
@@ -50,12 +50,11 @@ $(document).ready(function() {
       var formato_distribucion = formatDataLayerValue(resource.find('.text-truncate')[0].innerText);
       // #1 Download file click.
       if ($(this).hasClass('resource-download')){
-        var literal_boton = formatDataLayerValue(resource.find('.download-icon')[0].alt);
-        var download_url = formatDataLayerValue(resource.find('a.btn-primary-resource')[0].href);
+        var download_url = formatDataLayerValue($(this)[0].href);
         dataLayer.push({
           'seccion_s2': seccion_s2,
           'category': 'Download',
-          'element': literal_boton,
+          'element': 'descargar_icono',
           'context': nombre_distribucion,
           'formato_descarga': formato_distribucion,
           'download_url': download_url,
@@ -65,11 +64,11 @@ $(document).ready(function() {
       // #2 External link click.
       if ($(this).hasClass('resource-external-link')){
         var literal_boton = formatDataLayerValue(resource.find('.external-icon')[0].alt);
-        var exit_url = formatDataLayerValue(resource.find('a.btn-primary-resource')[0].href);
+        var exit_url = formatDataLayerValue($(this)[0].href);
         dataLayer.push({
           'seccion_s2': seccion_s2,
           'category': 'Exit button',
-          'element': 'Acceder',
+          'element': 'acceder_icono',
           'exit_url': exit_url,
           'context': nombre_distribucion,
           'formato_descarga': formato_distribucion,
@@ -77,6 +76,39 @@ $(document).ready(function() {
         });
       }
     });
+    // Events #1 metadata rows
+    $('.accordion-body').on('click', 'a.resource-download', function() {
+      var resource = $(this).closest('.accordion-item');
+      var nombre_distribucion = formatDataLayerValue(resource.find('.accordion-header-title')[0].innerText);
+      var formato_distribucion = formatDataLayerValue(resource.find('.text-truncate')[0].innerText);
+      var download_url = formatDataLayerValue($(this)[0].href);
+      dataLayer.push({
+        'seccion_s2': seccion_s2,
+        'category': 'Download',
+        'element': 'descargar_url',
+        'context': nombre_distribucion,
+        'formato_descarga': formato_distribucion,
+        'download_url': download_url,
+        'event': 'click_download'
+      });
+    });
+    // Event #2 metadata rows
+    $('.accordion-body').on('click', 'a.resource-external-link', function() {
+      var resource = $(this).closest('.accordion-item');
+      var nombre_distribucion = formatDataLayerValue(resource.find('.accordion-header-title')[0].innerText);
+      var formato_distribucion = formatDataLayerValue(resource.find('.text-truncate')[0].innerText);
+      var exit_url = formatDataLayerValue($(this)[0].href);
+      dataLayer.push({
+        'seccion_s2': seccion_s2,
+        'category': 'Exit button',
+        'element': 'acceder_url',
+        'exit_url': exit_url,
+        'context': nombre_distribucion,
+        'formato_descarga': formato_distribucion,
+        'event': 'exit_link'
+      });
+    });
+
     // Event #4 Add new dataset. When submit button is pressed it redirects to dataset page.
     if (localStorage.getItem('datasetAdded') != null) {
       var sectores = localStorage.getItem('sectores');

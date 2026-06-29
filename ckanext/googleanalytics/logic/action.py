@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 import itertools as it
-import operator as op
 import ckan.plugins.toolkit as tk
 from ckan.logic import validate
 from google.analytics.data import BetaAnalyticsDataClient

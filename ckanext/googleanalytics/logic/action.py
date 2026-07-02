@@ -1,19 +1,15 @@
 from __future__ import absolute_import
 import itertools as it
-import operator as op
 import ckan.plugins.toolkit as tk
 from ckan.logic import validate
 from google.analytics.data import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import (
     RunReportRequest,
-    MetricHeader,
-    DimensionHeader,
 )
 
 from . import schema
 from .. import config
 from ..model import PackageStats, ResourceStats
-from ..ga_auth import init_service, get_profile_id
 
 
 def get_actions():
